@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "public": true,
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/(index|form|login|users|view-form)",
+      "destination": "/$1.html"
+    }
+  ]
+}
