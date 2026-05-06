@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectEls = ['#divisi', '#jabatan', '#periode'];
         selectEls.forEach(selector => {
             const el = document.querySelector(selector);
-            if (el) {
+            if (el && !el.tomselect) {
                 const ts = new TomSelect(el, {
                     create: false,
                     sortField: { field: "text", direction: "asc" }
@@ -92,11 +92,17 @@ function populateViewForm(assessment) {
         namaField.value = assessment.users?.name || '-';
     }
 
-    document.getElementById('divisi').value = assessment.divisi || '-';
-    document.getElementById('jabatan').value = assessment.jabatan || '-';
-    document.getElementById('periode').value = assessment.periode || '-';
-    document.getElementById('representative').checked = assessment.is_representative || false;
-    document.getElementById('tanggalPengisian').value = formatDate(assessment.created_at);
+    const divisiEl = document.getElementById('divisi');
+    if (divisiEl) divisiEl.value = assessment.divisi || '-';
+    
+    const jabatanEl = document.getElementById('jabatan');
+    if (jabatanEl) jabatanEl.value = assessment.jabatan || '-';
+    
+    const periodeEl = document.getElementById('periode');
+    if (periodeEl) periodeEl.value = assessment.periode || '-';
+    
+    const representativeEl = document.getElementById('representative');
+    if (representativeEl) representativeEl.checked = assessment.is_representative || false;
 
     // Update TomSelect values if available
     const divisiSelect = document.getElementById('divisi');

@@ -167,7 +167,7 @@
         .view-mode input[type="text"]:disabled,
         .view-mode select:disabled,
         .view-mode textarea:disabled {
-            background-color: #f9fafb;
+            background-color: #f3f4f6;
             color: #374151;
             border-color: #e5e7eb;
         }
@@ -182,18 +182,18 @@
         <main class="main-content">
             <header class="header">
                 <div>
-                    <h1>View Assessment 5R</h1>
-                    <p>Detail penilaian 5R untuk divisi</p>
+                    <h1>Self Assessment 5R</h1>
+                    <p>Formulir penilaian 5R untuk divisi</p>
                 </div>
                 <div class="header-actions">
-                    <button type="button" class="btn btn-primary" onclick="printAssessment()">
+                    <!-- <button type="button" class="btn btn-primary" onclick="printAssessment()">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2">
                             <path
                                 d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                         </svg>
                         Cetak
-                    </button>
+                    </button> -->
                     <a href="index.html" class="btn btn-secondary">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2">
@@ -205,6 +205,7 @@
             </header>
 
             <form id="viewAssessmentForm" class="view-mode">
+                <input type="hidden" id="form_user_id">
                 <!-- Section 0: Informasi Umum -->
                 <section class="form-section" id="section0">
                     <div class="section-header section-info">
@@ -231,12 +232,12 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="nama">Nama Karyawan</label>
+                            <label for="nama">Nama Karyawan <span class="required">*</span></label>
                             <input type="text" id="nama" name="nama" disabled>
                         </div>
 
                         <div class="form-group">
-                            <label for="divisi">Divisi</label>
+                            <label for="divisi">Divisi <span class="required">*</span></label>
                             <select id="divisi" name="divisi" disabled>
                                 <option value="">Pilih Divisi</option>
                                 <option value="Sekretaris Perusahaan">Sekretaris Perusahaan</option>
@@ -259,7 +260,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="jabatan">Jabatan</label>
+                            <label for="jabatan">Jabatan <span class="required">*</span></label>
                             <select id="jabatan" name="jabatan" disabled>
                                 <option value="">Pilih Jabatan</option>
                                 <option value="Kepala Divisi">Kepala Divisi</option>
@@ -271,7 +272,8 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="periode">Periode Pengisian Self Assessment</label>
+                            <label for="periode">Periode Pengisian Self Assessment <span
+                                    class="required">*</span></label>
                             <select id="periode" name="periode" disabled>
                                 <option value="">Pilih Periode</option>
                                 <option value="Januari">Januari</option>
@@ -289,10 +291,6 @@
                             </select>
                         </div>
 
-                        <div class="form-group">
-                            <label>Tanggal Pengisian</label>
-                            <input type="text" id="tanggalPengisian" disabled>
-                        </div>
                     </div>
                 </section>
 
@@ -310,10 +308,6 @@
                         <div>
                             <h2>Aspek Ringkas</h2>
                             <p>Memilah barang yang diperlukan dan tidak diperlukan</p>
-                        </div>
-                        <div class="section-score">
-                            <span class="section-score-label">Skor:</span>
-                            <span class="section-score-value" id="scoreR1">-</span>
                         </div>
                     </div>
 
@@ -567,10 +561,6 @@
                             <h2>Aspek Rapi</h2>
                             <p>Menata barang secara sistematis dan mudah ditemukan</p>
                         </div>
-                        <div class="section-score">
-                            <span class="section-score-label">Skor:</span>
-                            <span class="section-score-value" id="scoreR2">-</span>
-                        </div>
                     </div>
 
                     <div class="form-grid">
@@ -814,10 +804,6 @@
                         <div>
                             <h2>Aspek Resik</h2>
                             <p>Membersihkan area kerja secara rutin</p>
-                        </div>
-                        <div class="section-score">
-                            <span class="section-score-label">Skor:</span>
-                            <span class="section-score-value" id="scoreR3">-</span>
                         </div>
                     </div>
 
@@ -1064,10 +1050,6 @@
                             <h2>Aspek Rawat</h2>
                             <p>Merawat dan menjaga kondisi area kerja</p>
                         </div>
-                        <div class="section-score">
-                            <span class="section-score-label">Skor:</span>
-                            <span class="section-score-value" id="scoreR4">-</span>
-                        </div>
                     </div>
 
                     <div class="form-grid">
@@ -1180,10 +1162,6 @@
                         <div>
                             <h2>Aspek Rajin</h2>
                             <p>Melaksanakan 4R secara konsisten dan terus-menerus</p>
-                        </div>
-                        <div class="section-score">
-                            <span class="section-score-label">Skor:</span>
-                            <span class="section-score-value" id="scoreR5">-</span>
                         </div>
                     </div>
 
@@ -1373,8 +1351,35 @@
                     </div>
                 </section>
 
-                <!-- Section 6: Total Score Summary -->
+                <!-- Section 6: Pernyataan -->
                 <section class="form-section" id="section6">
+                    <div class="section-header section-pernyataan">
+                        <div class="section-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h2>Pernyataan</h2>
+                            <p>Konfirmasi kebenaran jawaban yang telah diisi</p>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label class="checkbox-label statement-label">
+                                <input type="checkbox" id="statement_agreed" disabled>
+                                <span class="checkmark"></span>
+                                Saya menyatakan bahwa jawaban yang telah saya isikan merupakan benar dengan kondisi yang
+                                ada
+                            </label>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 7: Total Score Summary -->
+                <section class="form-section" id="section7">
                     <div class="section-header section-pernyataan"
                         style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
                         <div class="section-icon" style="color: white;">
@@ -1450,11 +1455,7 @@
 
                 <!-- Form Actions -->
                 <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="window.location.href='index.html'">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                        </svg>
+                    <button type="button" class="btn btn-outline" onclick="window.location.href='index.html'">
                         Kembali ke Dashboard
                     </button>
                 </div>
