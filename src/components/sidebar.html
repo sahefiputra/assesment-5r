@@ -1,0 +1,45 @@
+<!-- Sidebar -->
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <div class="logo">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                <rect width="32" height="32" rx="8" fill="url(#logoGradient)" />
+                <path d="M8 12h16M8 16h16M8 20h10" stroke="white" stroke-width="2" stroke-linecap="round" />
+                <defs>
+                    <linearGradient id="logoGradient" x1="0" y1="0" x2="32" y2="32">
+                        <stop stop-color="#6366f1" />
+                        <stop offset="1" stop-color="#8b5cf6" />
+                    </linearGradient>
+                </defs>
+            </svg>
+            <span>5R Assessment</span>
+        </div>
+    </div>
+    <nav class="sidebar-nav">
+        <a href="index.html" class="nav-item @@if(context.active === 'dashboard'){active}">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="14" width="7" height="7" rx="1" />
+                <rect x="3" y="14" width="7" height="7" rx="1" />
+            </svg>
+            Dashboard
+        </a>
+        <!-- <a href="form.html" class="nav-item @@if(context.active === 'form'){active}">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
+            Form Assessment
+        </a> -->
+        <a href="users.html" class="nav-item k3-only @@if(context.active === 'users'){active}">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 00-3-3.87" />
+                <path d="M16 3.13a4 4 0 010 7.75" />
+            </svg>
+            Manajemen User
+        </a>
+    </nav>
+</aside>
