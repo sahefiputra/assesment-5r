@@ -246,6 +246,13 @@ function populateViewForm(assessment) {
 
     // Scroll to first section
     document.getElementById('section0').scrollIntoView({ behavior: 'smooth' });
+
+    // Close photo modal on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closePhotoModal();
+        }
+    });
 }
 
 // Set final score color class based on value
@@ -288,14 +295,36 @@ function showPhotoPreview(field, images) {
         return;
     }
 
+    // Store images in a global variable for view mode
+    window.viewModePhotos = window.viewModePhotos || {};
+    window.viewModePhotos[field] = imageArray;
+
     preview.innerHTML = `<div class="photo-grid">
-        ${imageArray.map((imgData, idx) => `
-            <div class="photo-item">
-                <img src="${imgData}" alt="Foto ${idx + 1}" onclick="window.open('${imgData}', '_blank')">
+        ${imageArray.map((imgData, idx) => {
+            const imgSrc = imgData.startsWith('data:') ? imgData : SupabaseAPI.getPublicUrl('5r-assesment', imgData);
+            return `
+            <div class="photo-item" onclick="openViewPhotoModal('${field}', ${idx})">
+                <img src="${imgSrc}" alt="Foto ${idx + 1}">
             </div>
-        `).join('')}
+            `;
+        }).join('')}
     </div>`;
     preview.classList.add('has-image');
+}
+
+// Open photo modal in view mode
+function openViewPhotoModal(field, index) {
+    const images = window.viewModePhotos && window.viewModePhotos[field] ? window.viewModePhotos[field] : [];
+    if (images.length === 0) return;
+
+    currentPhotoModal = {
+        images: images,
+        currentIndex: index,
+        field: field
+    };
+
+    updatePhotoModal();
+    document.getElementById('photoModal').classList.add('active');
 }
 
 // Print function

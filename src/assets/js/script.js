@@ -1044,6 +1044,29 @@ function getFormData() {
 async function handleSubmit(event) {
     event.preventDefault();
 
+    // Validasi semua field foto wajib diisi
+    const photoValidation = validatePhotoFields();
+    if (!photoValidation.isValid) {
+        // Scroll ke first missing field
+        const firstMissingField = document.querySelector(`[data-field="${photoValidation.missingFields[0]}"]`);
+        if (firstMissingField) {
+            firstMissingField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // Highlight missing fields
+        highlightMissingPhotoFields(photoValidation.missingFields);
+
+        // Show warning message
+        const missingCount = photoValidation.missingFields.length;
+        Swal.fire({
+            icon: 'warning',
+            title: 'Foto Wajib Diisi',
+            text: `Ada ${missingCount} field foto yang belum diisi. Mohon lengkapi sebelum submit.`,
+            confirmButtonColor: '#6366f1'
+        });
+        return;
+    }
+
     Swal.fire({
         title: 'Menyimpan...',
         text: 'Mohon tunggu sebentar',
@@ -1117,14 +1140,39 @@ async function handleSubmit(event) {
                         explanation: explanation
                     });
 
-                    // 3. Collect photos for this question
+                    // 3. Upload photos to storage for this question
                     const photoKey = `foto${qCode.replace('q', '')}`;
                     const photos = data[photoKey] || [];
-                    photosByAnswerIndex[answerIndex] = photos.map((photoData, i) => ({
-                        file_path: photoData,
-                        file_name: `photo_${qCode}_${Date.now()}_${i}.jpg`,
-                        file_size: Math.round(photoData.length * 0.75)
-                    }));
+
+                    const uploadedPhotos = [];
+                    for (let i = 0; i < photos.length; i++) {
+                        const photoData = photos[i];
+                        if (photoData.startsWith('data:')) {
+                            // Jika data adalah base64, upload ke storage
+                            const fileName = `photo_${qCode}_${Date.now()}_${i}.jpg`;
+                            const filePath = `assessments/${assessment_id}/${fileName}`;
+
+                            try {
+                                await SupabaseAPI.uploadFile('5r-assesment', filePath, photoData);
+                                uploadedPhotos.push({
+                                    file_path: filePath,
+                                    file_name: fileName,
+                                    file_size: Math.round(photoData.length * 0.75)
+                                });
+                            } catch (uploadError) {
+                                console.error('Error uploading photo:', uploadError);
+                                // Tetap simpan record tapi mungkin kosong atau handle error
+                            }
+                        } else {
+                            // Jika data sudah berupa path (misal saat edit), gunakan path tersebut
+                            uploadedPhotos.push({
+                                file_path: photoData,
+                                file_name: photoData.split('/').pop(),
+                                file_size: 0
+                            });
+                        }
+                    }
+                    photosByAnswerIndex[answerIndex] = uploadedPhotos;
                 }
             }
         }
@@ -1141,7 +1189,7 @@ async function handleSubmit(event) {
                 for (const photo of photos) {
                     photosToInsert.push({
                         answer_id: answer_id,
-                        file_path: photo.file_path,
+                        file_path: photo.file_path, // Path di storage
                         file_name: photo.file_name,
                         file_size: photo.file_size
                     });
@@ -1313,6 +1361,14 @@ function loadAssessmentFromSupabase(assessmentData) {
 // =====================
 // Image Handling
 // =====================
+
+// Photo modal state
+let currentPhotoModal = {
+    images: [],
+    currentIndex: 0,
+    field: ''
+};
+
 function previewImages(input) {
     const field = input.id;
     const files = Array.from(input.files);
@@ -1415,19 +1471,78 @@ function showImagePreview(field, imagesStrOrArr) {
         return;
     }
 
-    preview.innerHTML = `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; width: 100%;">
-        ${images.map((imgData, idx) => `
-            <div style="position: relative;">
-                <img src="${imgData}" alt="Preview" style="width: 100%; height: 100px; object-fit: cover; border-radius: 8px;">
-                <button type="button" class="remove-btn" onclick="removeImageIndex('${field}', ${idx})" style="position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+    preview.innerHTML = `<div class="photo-grid">
+        ${images.map((imgData, idx) => {
+        const imgSrc = imgData.startsWith('data:') ? imgData : SupabaseAPI.getPublicUrl('5r-assesment', imgData);
+        return `
+            <div class="photo-item" onclick="openPhotoModal('${field}', ${idx})">
+                <img src="${imgSrc}" alt="Preview">
+                <button type="button" class="remove-btn" onclick="event.stopPropagation(); removeImageIndex('${field}', ${idx})">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M18 6L6 18M6 6l12 12"/>
                     </svg>
                 </button>
             </div>
-        `).join('')}
+            `;
+    }).join('')}
     </div>`;
     preview.classList.add('has-image');
+}
+
+// Open photo modal with full size image
+function openPhotoModal(field, index) {
+    let images = [];
+    try {
+        const stored = sessionStorage.getItem(field);
+        if (stored) {
+            images = JSON.parse(stored);
+            if (!Array.isArray(images)) images = [images];
+        }
+    } catch (e) {
+        const stored = sessionStorage.getItem(field);
+        if (stored) images = [stored];
+    }
+
+    if (images.length === 0) return;
+
+    currentPhotoModal = {
+        images: images,
+        currentIndex: index,
+        field: field
+    };
+
+    updatePhotoModal();
+    document.getElementById('photoModal').classList.add('active');
+}
+
+function updatePhotoModal() {
+    const { images, currentIndex } = currentPhotoModal;
+    const modalImg = document.getElementById('photoModalImage');
+    const modalCounter = document.getElementById('photoModalCounter');
+    const prevBtn = document.getElementById('photoModalPrev');
+    const nextBtn = document.getElementById('photoModalNext');
+
+    const imgSrc = images[currentIndex].startsWith('data:') ? images[currentIndex] : SupabaseAPI.getPublicUrl('5r-assesment', images[currentIndex]);
+    modalImg.src = imgSrc;
+    modalCounter.textContent = `${currentIndex + 1} / ${images.length}`;
+
+    prevBtn.style.display = currentIndex > 0 ? 'flex' : 'none';
+    nextBtn.style.display = currentIndex < images.length - 1 ? 'flex' : 'none';
+}
+
+function closePhotoModal() {
+    document.getElementById('photoModal').classList.remove('active');
+    currentPhotoModal = { images: [], currentIndex: 0, field: '' };
+}
+
+function navigatePhotoModal(direction) {
+    const { images, currentIndex } = currentPhotoModal;
+    const newIndex = currentIndex + direction;
+
+    if (newIndex >= 0 && newIndex < images.length) {
+        currentPhotoModal.currentIndex = newIndex;
+        updatePhotoModal();
+    }
 }
 
 function removeImageIndex(field, index) {
@@ -1459,6 +1574,50 @@ function getStoredImage(field) {
     } catch (e) {
         return [val];
     }
+}
+
+// Function to get all photo fields for validation
+function getAllPhotoFields() {
+    return [
+        'foto1_1', 'foto1_2', 'foto1_3', 'foto1_4', 'foto1_5',
+        'foto2_1', 'foto2_2', 'foto2_3', 'foto2_4', 'foto2_5',
+        'foto3_1', 'foto3_2', 'foto3_3', 'foto3_4', 'foto3_5',
+        'foto4_1', 'foto4_2'
+    ];
+}
+
+// Function to validate all photo fields
+function validatePhotoFields() {
+    const photoFields = getAllPhotoFields();
+    const missingFields = [];
+
+    photoFields.forEach(field => {
+        const images = getStoredImage(field);
+        if (images.length === 0) {
+            missingFields.push(field);
+        }
+    });
+
+    return {
+        isValid: missingFields.length === 0,
+        missingFields: missingFields
+    };
+}
+
+// Function to highlight missing photo fields
+function highlightMissingPhotoFields(missingFields) {
+    // Remove all previous highlights
+    document.querySelectorAll('.photo-missing').forEach(el => {
+        el.classList.remove('photo-missing');
+    });
+
+    // Add highlight to missing fields
+    missingFields.forEach(field => {
+        const uploadContainer = document.querySelector(`[data-field="${field}"]`);
+        if (uploadContainer) {
+            uploadContainer.classList.add('photo-missing');
+        }
+    });
 }
 
 // =====================
@@ -1765,6 +1924,13 @@ function showToast(message) {
 // Event Listeners
 // =====================
 document.addEventListener('DOMContentLoaded', function () {
+    // Close photo modal on Escape key
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            closePhotoModal();
+        }
+    });
+
     // Initialize TomSelect for dropdowns if available
     if (typeof TomSelect !== 'undefined') {
         const selectEls = ['#divisi', '#jabatan', '#periode'];
@@ -1792,7 +1958,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const k3Elements = document.querySelectorAll('.k3-only');
         k3Elements.forEach(el => {
             if (user.role === 'k3') {
-                el.style.display = '';
+                el.style.display = 'block';
             } else {
                 el.style.display = 'none';
             }

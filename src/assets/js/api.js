@@ -111,5 +111,55 @@ const SupabaseAPI = {
         }
 
         return await response.json();
+    },
+
+    /**
+     * Upload file ke Supabase Storage
+     * @param {string} bucket - Nama bucket (contoh: 'photos')
+     * @param {string} path - Path file (contoh: 'assessments/photo1.jpg')
+     * @param {File|Blob|string} file - File object, Blob, atau Base64 string
+     */
+    async uploadFile(bucket, path, file) {
+        const baseUrl = SUPABASE_URL.replace('/rest/v1', '/storage/v1');
+        const url = `${baseUrl}/object/${bucket}/${path}`;
+
+        let body = file;
+        let contentType = 'application/octet-stream';
+
+        if (typeof file === 'string' && file.startsWith('data:')) {
+            // Handle base64
+            const arr = file.split(',');
+            const mime = arr[0].match(/:(.*?);/)[1];
+            const bstr = atob(arr[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while (n--) {
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+            body = new Blob([u8arr], { type: mime });
+            contentType = mime;
+        }
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Content-Type': contentType
+            },
+            body: body
+        });
+
+        return this.handleResponse(response);
+    },
+
+    /**
+     * Ambil public URL untuk file di storage
+     * @param {string} bucket 
+     * @param {string} path 
+     */
+    getPublicUrl(bucket, path) {
+        const baseUrl = SUPABASE_URL.replace('/rest/v1', '/storage/v1');
+        return `${baseUrl}/object/public/${bucket}/${path}`;
     }
 };
