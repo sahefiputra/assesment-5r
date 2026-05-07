@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - 5R Assessment</title>
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
+
 <body class="login-page">
     <!-- Background Elements -->
     <div class="login-bg-shape shape-1"></div>
@@ -18,12 +20,12 @@
             <div class="login-logo">
                 <div class="logo-icon">
                     <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                        <rect width="48" height="48" rx="12" fill="url(#logoGradient)"/>
-                        <path d="M14 20h20M14 26h20M14 32h12" stroke="white" stroke-width="3" stroke-linecap="round"/>
+                        <rect width="48" height="48" rx="12" fill="url(#logoGradient)" />
+                        <path d="M14 20h20M14 26h20M14 32h12" stroke="white" stroke-width="3" stroke-linecap="round" />
                         <defs>
                             <linearGradient id="logoGradient" x1="0" y1="0" x2="48" y2="48">
-                                <stop stop-color="#818cf8"/>
-                                <stop offset="1" stop-color="#6366f1"/>
+                                <stop stop-color="#818cf8" />
+                                <stop offset="1" stop-color="#6366f1" />
                             </linearGradient>
                         </defs>
                     </svg>
@@ -35,27 +37,33 @@
             <form id="loginForm" onsubmit="handleLogin(event)">
                 <div class="input-group">
                     <div class="input-icon">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
-                            <circle cx="12" cy="7" r="4"/>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                            <circle cx="12" cy="7" r="4" />
                         </svg>
                     </div>
-                    <input type="text" id="username" name="username" required placeholder="Username" autocomplete="username">
+                    <input type="text" id="username" name="username" required placeholder="Username"
+                        autocomplete="username">
                 </div>
 
                 <div class="input-group">
                     <div class="input-icon">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                            <path d="M7 11V7a5 5 0 0110 0v4"/>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                            <path d="M7 11V7a5 5 0 0110 0v4" />
                         </svg>
                     </div>
                     <div class="password-wrapper">
-                        <input type="password" id="password" name="password" required placeholder="Password" autocomplete="current-password">
-                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('password', this)" title="Lihat Password">
-                            <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                                <circle cx="12" cy="12" r="3"/>
+                        <input type="password" id="password" name="password" required placeholder="Password"
+                            autocomplete="current-password">
+                        <button type="button" class="password-toggle"
+                            onclick="togglePasswordVisibility('password', this)" title="Lihat Password">
+                            <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                <circle cx="12" cy="12" r="3" />
                             </svg>
                         </button>
                     </div>
@@ -63,8 +71,8 @@
 
                 <div id="loginError" class="error-message" style="display: none;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <path d="M12 8v4m0 4h.01"/>
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M12 8v4m0 4h.01" />
                     </svg>
                     <span>Username atau password salah</span>
                 </div>
@@ -72,13 +80,13 @@
                 <button type="submit" class="btn-login">
                     <span>Login</span>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                        <path d="M5 12h14M12 5l7 7-7 7" />
                     </svg>
                 </button>
             </form>
 
             <!-- Demo Accounts -->
-            <div class="login-info">
+            <!-- <div class="login-info">
                 <div class="info-header">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"/>
@@ -119,7 +127,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
             <!-- Footer -->
             <div class="login-footer">
@@ -132,4 +140,5 @@
     <script src="assets/js/api.js"></script>
     <script src="assets/js/script.js"></script>
 </body>
+
 </html>

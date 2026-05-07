@@ -1398,30 +1398,63 @@
                         <div
                             style="display: grid; grid-template-columns: repeat(5, 1fr) auto; gap: 1rem; align-items: center;">
                             <div style="text-align: center; padding: 1.5rem; background: #f3f4f6; border-radius: 12px;">
-                                <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.5rem;">R1 Ringkas
-                                </div>
+                                <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.5rem;">R1 Ringkas</div>
                                 <div id="finalScoreR1" class="final-score-badge">-</div>
+                                <div style="font-size: 0.7rem; color: #6b7280; margin-top: 0.5rem; line-height: 1.3;">
+                                    <div>Asli: <span id="originalScoreR1">-</span></div>
+                                    <div>K3: <span id="k3ScoreR1">-</span></div>
+                                </div>
                             </div>
                             <div style="text-align: center; padding: 1.5rem; background: #f3f4f6; border-radius: 12px;">
                                 <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.5rem;">R2 Rapi</div>
                                 <div id="finalScoreR2" class="final-score-badge">-</div>
+                                <div style="font-size: 0.7rem; color: #6b7280; margin-top: 0.5rem; line-height: 1.3;">
+                                    <div>Asli: <span id="originalScoreR2">-</span></div>
+                                    <div>K3: <span id="k3ScoreR2">-</span></div>
+                                </div>
                             </div>
                             <div style="text-align: center; padding: 1.5rem; background: #f3f4f6; border-radius: 12px;">
                                 <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.5rem;">R3 Resik</div>
                                 <div id="finalScoreR3" class="final-score-badge">-</div>
+                                <div style="font-size: 0.7rem; color: #6b7280; margin-top: 0.5rem; line-height: 1.3;">
+                                    <div>Asli: <span id="originalScoreR3">-</span></div>
+                                    <div>K3: <span id="k3ScoreR3">-</span></div>
+                                </div>
                             </div>
                             <div style="text-align: center; padding: 1.5rem; background: #f3f4f6; border-radius: 12px;">
                                 <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.5rem;">R4 Rawat</div>
                                 <div id="finalScoreR4" class="final-score-badge">-</div>
+                                <div style="font-size: 0.7rem; color: #6b7280; margin-top: 0.5rem; line-height: 1.3;">
+                                    <div>Asli: <span id="originalScoreR4">-</span></div>
+                                    <div>K3: <span id="k3ScoreR4">-</span></div>
+                                </div>
                             </div>
                             <div style="text-align: center; padding: 1.5rem; background: #f3f4f6; border-radius: 12px;">
                                 <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.5rem;">R5 Rajin</div>
                                 <div id="finalScoreR5" class="final-score-badge">-</div>
+                                <div style="font-size: 0.7rem; color: #6b7280; margin-top: 0.5rem; line-height: 1.3;">
+                                    <div>Asli: <span id="originalScoreR5">-</span></div>
+                                    <div>K3: <span id="k3ScoreR5">-</span></div>
+                                </div>
                             </div>
                             <div
                                 style="grid-column: 6; text-align: center; padding: 1.5rem 2rem; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 12px; color: white;">
                                 <div style="font-size: 0.875rem; opacity: 0.9; margin-bottom: 0.5rem;">Total Skor</div>
                                 <div id="finalScoreTotal" style="font-size: 2rem; font-weight: 700;">-</div>
+                            </div>
+                        </div>
+
+                        <!-- Keterangan Total Score -->
+                        <div id="totalScoreNote" style="margin-top: 1.5rem; padding: 1rem; background: #fef3c7; border-radius: 8px; border-left: 4px solid #f59e0b; display: none;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M12 8v4m0 4h.01"></path>
+                                </svg>
+                                <div>
+                                    <div style="font-weight: 600; color: #92400e;">Belum Diverifikasi K3</div>
+                                    <div style="font-size: 0.875rem; color: #b45309;">Total skor akan ditampilkan setelah dilakukan verifikasi oleh tim K3.</div>
+                                </div>
                             </div>
                         </div>
 
@@ -1447,6 +1480,14 @@
                                     <span
                                         style="width: 12px; height: 12px; background: #fee2e2; border-radius: 50%;"></span>
                                     <span>25 = Kurang</span>
+                                </div>
+                            </div>
+                            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e7eb;">
+                                <div style="font-weight: 600; margin-bottom: 0.5rem; color: #374151;">Keterangan Perhitungan:</div>
+                                <div style="font-size: 0.875rem; color: #6b7280; line-height: 1.6;">
+                                    <div>• <strong>Skor Asli</strong>: Rata-rata skor yang diisi oleh user</div>
+                                    <div>• <strong>Skor K3</strong>: Rata-rata skor yang diverifikasi oleh tim K3 (bobot 2x)</div>
+                                    <div>• <strong>Total Skor</strong> = (Rata-rata Skor Asli + (Rata-rata Skor K3 × 2)) / 2</div>
                                 </div>
                             </div>
                         </div>

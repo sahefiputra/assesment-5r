@@ -461,6 +461,15 @@ body {
     background: #fecaca;
 }
 
+.btn-info {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.btn-info:hover {
+    background: #bfdbfe;
+}
+
 .btn-lg {
     padding: var(--space-3) var(--space-6);
     font-size: 0.9375rem;
@@ -1035,6 +1044,14 @@ body {
     overflow-y: auto;
 }
 
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    padding: var(--space-6);
+    border-top: 1px solid var(--gray-200);
+}
+
 /* Toast */
 .toast {
     position: fixed;
@@ -1456,8 +1473,9 @@ body {
 
 .charts-grid {
     display: grid;
-    grid-template-columns: 1.5fr 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: var(--space-6);
+    padding: var(--space-6);
 }
 
 .chart-item h3 {
@@ -1469,8 +1487,10 @@ body {
 }
 
 .chart-container {
-    height: 280px;
+    height: 300px;
     position: relative;
+    width: 100%;
+    max-width: 100%;
 }
 
 /* K3 & User Only */

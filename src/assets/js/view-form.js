@@ -94,13 +94,13 @@ function populateViewForm(assessment) {
 
     const divisiEl = document.getElementById('divisi');
     if (divisiEl) divisiEl.value = assessment.divisi || '-';
-    
+
     const jabatanEl = document.getElementById('jabatan');
     if (jabatanEl) jabatanEl.value = assessment.jabatan || '-';
-    
+
     const periodeEl = document.getElementById('periode');
     if (periodeEl) periodeEl.value = assessment.periode || '-';
-    
+
     const representativeEl = document.getElementById('representative');
     if (representativeEl) representativeEl.checked = assessment.is_representative || false;
 
@@ -113,44 +113,21 @@ function populateViewForm(assessment) {
     if (jabatanSelect && jabatanSelect.tomselect) jabatanSelect.tomselect.setValue(assessment.jabatan || '');
     if (periodeSelect && periodeSelect.tomselect) periodeSelect.tomselect.setValue(assessment.periode || '');
 
-    // Build scores dari parent assessment
-    const scores = {
-        r1: parseFloat(assessment.r1_score || 0),
-        r2: parseFloat(assessment.r2_score || 0),
-        r3: parseFloat(assessment.r3_score || 0),
-        r4: parseFloat(assessment.r4_score || 0),
-        r5: parseFloat(assessment.r5_score || 0),
-        total: parseFloat(assessment.total_score || 0)
+    // Hitung skor asli dan skor K3 dari assessment_answers
+    const aspectQuestions = {
+        'R1': ['q1_1', 'q1_2', 'q1_3', 'q1_4', 'q1_5'],
+        'R2': ['q2_1', 'q2_2', 'q2_3', 'q2_4', 'q2_5'],
+        'R3': ['q3_1', 'q3_2', 'q3_3', 'q3_4', 'q3_5'],
+        'R4': ['q4_1', 'q4_2'],
+        'R5': ['q5_1', 'q5_2', 'q5_3', 'q5_4', 'q5_5']
     };
 
-    // Display scores in section headers
-    const scoreElements = {
-        'scoreR1': scores.r1,
-        'scoreR2': scores.r2,
-        'scoreR3': scores.r3,
-        'scoreR4': scores.r4,
-        'scoreR5': scores.r5
-    };
+    const originalScores = { R1: 0, R2: 0, R3: 0, R4: 0, R5: 0 };
+    const k3Scores = { R1: 0, R2: 0, R3: 0, R4: 0, R5: 0 };
+    const answerCounts = { R1: 0, R2: 0, R3: 0, R4: 0, R5: 0 };
+    const k3AnswerCounts = { R1: 0, R2: 0, R3: 0, R4: 0, R5: 0 };
 
-    for (const [id, score] of Object.entries(scoreElements)) {
-        const el = document.getElementById(id);
-        if (el) el.textContent = score.toFixed(1);
-    }
-
-    // Display final scores with color
-    setFinalScoreColor('finalScoreR1', scores.r1);
-    setFinalScoreColor('finalScoreR2', scores.r2);
-    setFinalScoreColor('finalScoreR3', scores.r3);
-    setFinalScoreColor('finalScoreR4', scores.r4);
-    setFinalScoreColor('finalScoreR5', scores.r5);
-
-    // Total score keeps gradient style
-    const totalScoreEl = document.getElementById('finalScoreTotal');
-    if (totalScoreEl) {
-        totalScoreEl.textContent = scores.total.toFixed(1);
-    }
-
-    // Load answers
+    // Load answers dan hitung skor
     if (assessment.assessment_answers && Array.isArray(assessment.assessment_answers)) {
         assessment.assessment_answers.forEach(answer => {
             // Set radio button value
@@ -172,7 +149,99 @@ function populateViewForm(assessment) {
                 const photos = answer.assessment_photos.map(p => p.file_path);
                 showPhotoPreview(photoField, photos);
             }
+
+            // Hitung skor asli per aspek
+            for (const [aspect, questions] of Object.entries(aspectQuestions)) {
+                if (questions.includes(answer.question_code)) {
+                    originalScores[aspect] += (answer.score || 0);
+                    answerCounts[aspect]++;
+
+                    // Hitung skor K3 jika ada
+                    if (answer.score_k3 !== null && answer.score_k3 !== undefined) {
+                        k3Scores[aspect] += answer.score_k3;
+                        k3AnswerCounts[aspect]++;
+                    }
+                }
+            }
         });
+    }
+
+    // Hitung rata-rata skor asli per aspek
+    const avgOriginalScores = {
+        R1: answerCounts.R1 > 0 ? originalScores.R1 / aspectQuestions.R1.length : 0,
+        R2: answerCounts.R2 > 0 ? originalScores.R2 / aspectQuestions.R2.length : 0,
+        R3: answerCounts.R3 > 0 ? originalScores.R3 / aspectQuestions.R3.length : 0,
+        R4: answerCounts.R4 > 0 ? originalScores.R4 / aspectQuestions.R4.length : 0,
+        R5: answerCounts.R5 > 0 ? originalScores.R5 / aspectQuestions.R5.length : 0
+    };
+
+    // Hitung rata-rata skor K3 per aspek
+    const avgK3Scores = {
+        R1: k3AnswerCounts.R1 > 0 ? k3Scores.R1 / aspectQuestions.R1.length : 0,
+        R2: k3AnswerCounts.R2 > 0 ? k3Scores.R2 / aspectQuestions.R2.length : 0,
+        R3: k3AnswerCounts.R3 > 0 ? k3Scores.R3 / aspectQuestions.R3.length : 0,
+        R4: k3AnswerCounts.R4 > 0 ? k3Scores.R4 / aspectQuestions.R4.length : 0,
+        R5: k3AnswerCounts.R5 > 0 ? k3Scores.R5 / aspectQuestions.R5.length : 0
+    };
+
+    // Tampilkan skor asli dan skor K3 untuk setiap aspek
+    document.getElementById('originalScoreR1').textContent = avgOriginalScores.R1.toFixed(1);
+    document.getElementById('originalScoreR2').textContent = avgOriginalScores.R2.toFixed(1);
+    document.getElementById('originalScoreR3').textContent = avgOriginalScores.R3.toFixed(1);
+    document.getElementById('originalScoreR4').textContent = avgOriginalScores.R4.toFixed(1);
+    document.getElementById('originalScoreR5').textContent = avgOriginalScores.R5.toFixed(1);
+
+    // Cek apakah ada skor K3 untuk semua aspek
+    const allK3ScoresExist = Object.values(k3AnswerCounts).every(count => count > 0);
+
+    if (allK3ScoresExist) {
+        document.getElementById('k3ScoreR1').textContent = avgK3Scores.R1.toFixed(1);
+        document.getElementById('k3ScoreR2').textContent = avgK3Scores.R2.toFixed(1);
+        document.getElementById('k3ScoreR3').textContent = avgK3Scores.R3.toFixed(1);
+        document.getElementById('k3ScoreR4').textContent = avgK3Scores.R4.toFixed(1);
+        document.getElementById('k3ScoreR5').textContent = avgK3Scores.R5.toFixed(1);
+    } else {
+        document.getElementById('k3ScoreR1').textContent = '-';
+        document.getElementById('k3ScoreR2').textContent = '-';
+        document.getElementById('k3ScoreR3').textContent = '-';
+        document.getElementById('k3ScoreR4').textContent = '-';
+        document.getElementById('k3ScoreR5').textContent = '-';
+    }
+
+    // Tampilkan skor di header (menggunakan skor asli dari assessment table)
+    const scores = {
+        r1: parseFloat(assessment.r1_score || 0),
+        r2: parseFloat(assessment.r2_score || 0),
+        r3: parseFloat(assessment.r3_score || 0),
+        r4: parseFloat(assessment.r4_score || 0),
+        r5: parseFloat(assessment.r5_score || 0),
+        total: parseFloat(assessment.total_score || 0)
+    };
+
+    // Display final scores with color (skor asli)
+    setFinalScoreColor('finalScoreR1', scores.r1);
+    setFinalScoreColor('finalScoreR2', scores.r2);
+    setFinalScoreColor('finalScoreR3', scores.r3);
+    setFinalScoreColor('finalScoreR4', scores.r4);
+    setFinalScoreColor('finalScoreR5', scores.r5);
+
+    // Total score
+    const totalScoreEl = document.getElementById('finalScoreTotal');
+    if (totalScoreEl) {
+        if (scores.total === 0 || scores.total === null) {
+            totalScoreEl.textContent = '-';
+            // Tampilkan keterangan belum diverifikasi K3
+            const totalScoreNote = document.getElementById('totalScoreNote');
+            if (totalScoreNote) {
+                totalScoreNote.style.display = 'block';
+            }
+        } else {
+            totalScoreEl.textContent = scores.total.toFixed(1);
+            const totalScoreNote = document.getElementById('totalScoreNote');
+            if (totalScoreNote) {
+                totalScoreNote.style.display = 'none';
+            }
+        }
     }
 
     // Scroll to first section

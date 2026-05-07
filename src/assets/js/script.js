@@ -13,7 +13,7 @@ try {
         ];
         localStorage.setItem('assessment5r_users', JSON.stringify(USERS));
     }
-} catch(e) {
+} catch (e) {
     console.error(e);
 }
 
@@ -170,7 +170,7 @@ async function fetchAssessmentsFromSupabase() {
         }
 
         const data = await SupabaseAPI.get('assessments', params);
-        
+
         if (data) {
             // Transform data to match flat structure used in app
             const transformed = data.map(a => ({
@@ -192,7 +192,7 @@ async function fetchAssessmentsFromSupabase() {
                     total: parseFloat(a.total_score || 0)
                 }
             }));
-            
+
             saveAssessments(transformed);
             return transformed;
         }
@@ -350,8 +350,8 @@ async function renderAssessments(forceFetch = false) {
 
     let filtered = assessments.filter(a => {
         const matchesSearch = a.nama.toLowerCase().includes(searchTerm) ||
-                             a.divisi.toLowerCase().includes(searchTerm) ||
-                             a.jabatan.toLowerCase().includes(searchTerm);
+            a.divisi.toLowerCase().includes(searchTerm) ||
+            a.jabatan.toLowerCase().includes(searchTerm);
         const matchesDivisi = divisiFilter === 'all' || a.divisi === divisiFilter;
         return matchesSearch && matchesDivisi;
     });
@@ -381,6 +381,11 @@ async function renderAssessments(forceFetch = false) {
         if (user.role === 'k3') {
             // K3: View, Edit, Delete
             actionButtons = `
+             <button class="btn btn-sm btn-info" onclick="openK3VerifModal('${a.id}')" title="Verifikasi K3">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </button>
                 <button class="btn btn-sm btn-outline" onclick="viewAssessment('${a.id}')" title="Lihat">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -417,7 +422,7 @@ async function renderAssessments(forceFetch = false) {
                 <td>${escapeHtml(a.divisi)}</td>
                 <td>${escapeHtml(a.jabatan)}</td>
                 <td>${formatDate(a.createdAt)}</td>
-                <td class="score-cell score-total"><strong>${a.scores?.total.toFixed(1) || '-'}</strong></td>
+                <td class="score-cell score-total"><strong>${a.scores?.total.toFixed(1) || '-'}</strong></td>               
                 <td>
                     <div style="display: flex; gap: 0.5rem;">
                         ${actionButtons}
@@ -602,8 +607,12 @@ function renderPieChart(assessments) {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    position: 'right',
-                    labels: { boxWidth: 12, padding: 15 }
+                    position: 'bottom',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 10,
+                        font: { size: 10 }
+                    }
                 }
             }
         }
@@ -670,6 +679,262 @@ async function deleteAssessment(id) {
 
 function closeModal() {
     document.getElementById('detailModal').classList.remove('active');
+}
+
+// =====================
+// K3 Verification Functions
+// =====================
+let currentK3VerifAssessmentId = null;
+let currentK3VerifAnswers = null; // Simpan answers untuk diakses di submitK3Verification
+
+async function openK3VerifModal(assessmentId) {
+    currentK3VerifAssessmentId = assessmentId;
+
+    try {
+        Swal.fire({
+            title: 'Memuat data...',
+            text: 'Mohon tunggu sebentar',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        // Fetch assessment dengan answers dari Supabase
+        const assessment = await SupabaseAPI.get('assessments', {
+            'id': `eq.${assessmentId}`,
+            'select': '*,assessment_answers(*)'
+        });
+
+        if (!assessment || assessment.length === 0) {
+            Swal.close();
+            Swal.fire('Error', 'Assessment tidak ditemukan', 'error');
+            return;
+        }
+
+        const data = assessment[0];
+        const answers = data.assessment_answers || [];
+
+        // Simpan answers ke variabel global
+        currentK3VerifAnswers = answers;
+
+        Swal.close();
+
+        // Render modal dengan pertanyaan dan field score_k3
+        renderK3VerifModal(data, answers);
+
+        document.getElementById('k3VerifModal').classList.add('active');
+    } catch (e) {
+        console.error('Error loading assessment for K3 verification:', e);
+        Swal.close();
+        Swal.fire('Error', 'Gagal memuat data: ' + e.message, 'error');
+    }
+}
+
+function getAspectGradient(aspectCode) {
+    const gradients = {
+        'R1': '#6366f1, #4f46e5',
+        'R2': '#10b981, #059669',
+        'R3': '#06b6d4, #0891b2',
+        'R4': '#f59e0b, #d97706',
+        'R5': '#8b5cf6, #7c3aed'
+    };
+    return gradients[aspectCode] || '#6366f1, #4f46e5';
+}
+
+function renderK3VerifModal(assessment, answers) {
+    const modalBody = document.getElementById('k3VerifModalBody');
+
+    const questionsMap = {
+        'R1': [
+            { code: 'q1_1', question: 'Apakah barang di area/meja kerja sesuai pekerjaan?' },
+            { code: 'q1_2', question: 'Apakah dokumen dalam map atau odner masih dalam masa simpan yang berlaku?' },
+            { code: 'q1_3', question: 'Apakah peralatan kerja dalam kondisi baik dan digunakan?' },
+            { code: 'q1_4', question: 'Apakah karyawan memahami cara membuang barang tidak terpakai atau arsip yang sudah melewati masa simpan?' },
+            { code: 'q1_5', question: 'Apakah barang dan inventaris sudah disimpan di tempatnya dan sesuai kebutuhan?' }
+        ],
+        'R2': [
+            { code: 'q2_1', question: 'Apakah pelabelan sudah lengkap dan memudahkan identifikasi barang?' },
+            { code: 'q2_2', question: 'Apakah barang, arsip, dan inventaris sudah tertata rapi dan sesuai penempatannya?' },
+            { code: 'q2_3', question: 'Apakah tempat penyimpanan memudahkan pencarian barang?' },
+            { code: 'q2_4', question: 'Apakah barang di area / meja kerja milik seluruh karyawan divisi telah tertata rapi?' },
+            { code: 'q2_5', question: 'Apakah layout zonasi dan letak penyimpanan sudah ada dan diterapkan di area kerja?' }
+        ],
+        'R3': [
+            { code: 'q3_1', question: 'Apakah area kerja (lantai, dinding, langit-langit, dan meja) sudah bersih dan bebas debu/kotoran?' },
+            { code: 'q3_2', question: 'Apakah peralatan kerja telah bersih, bebas debu, dan kotoran?' },
+            { code: 'q3_3', question: 'Apakah peralatan makan dalam kondisi bersih dan tempat sampah tidak menumpuk serta tidak ada sampah di sekitarnya?' },
+            { code: 'q3_4', question: 'Apakah karyawan telah membiasakan resik sebelum, selama, dan sesudah kerja?' },
+            { code: 'q3_5', question: 'Apakah ada sistem di tiap divisi untuk mendorong karyawan menjaga kebersihan area kerja?' }
+        ],
+        'R4': [
+            { code: 'q4_1', question: 'Apakah kendali visual terhadap potensi bahaya (simbol, rambu, marka) sudah diterapkan pada semua alat, mesin, dan sarana kerja?' },
+            { code: 'q4_2', question: 'Apakah seluruh peralatan, fasilitas, dan area kerjanya dalam kondisi terawat?' }
+        ],
+        'R5': [
+            { code: 'q5_1', question: 'Apakah seluruh karyawan telah menerapkan 4R sebelumnya terhadap peralatan, fasilitas, dan area kerjanya?' },
+            { code: 'q5_2', question: 'Apakah sikap kerja semua personel pada area kerja sudah menunjukkan kebiasaan positif (atribut kerja, tepat waktu, disiplin, dan sebagainya)?' },
+            { code: 'q5_3', question: 'Apakah karyawan divisi bersedia melaksanakan kegiatan 5R secara konsisten dan berkesinambungan?' },
+            { code: 'q5_4', question: 'Apakah sudah ada pertemuan atau evaluasi (PDCA) berkala untuk meningkatkan hasil penerapan 5R?' },
+            { code: 'q5_5', question: 'Apakah ada upaya perbaikan berkesinambungan (continual improvement) dalam penerapan 5R?' }
+        ]
+    };
+
+    const aspectNames = {
+        'R1': 'Aspek Ringkas',
+        'R2': 'Aspek Rapi',
+        'R3': 'Aspek Resik',
+        'R4': 'Aspek Rawat',
+        'R5': 'Aspek Rajin'
+    };
+
+    let html = `
+        <div style="margin-bottom: 1rem; padding: 1rem; background: #f3f4f6; border-radius: 8px;">
+            <strong>${escapeHtml(assessment.nama)}</strong> - ${escapeHtml(assessment.divisi)} - ${escapeHtml(assessment.jabatan)}
+        </div>
+    `;
+
+    // Loop setiap aspek
+    for (const [aspectCode, questions] of Object.entries(questionsMap)) {
+        html += `
+            <div class="verif-aspect-section" style="margin-bottom: 2rem;">
+                <h4 style="padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem; color: white; background: linear-gradient(135deg, ${getAspectGradient(aspectCode)});">
+                    ${aspectNames[aspectCode]}
+                </h4>
+                <div class="verif-questions-grid">
+        `;
+
+        // Loop setiap pertanyaan
+        questions.forEach(q => {
+            const answer = answers.find(a => a.question_code === q.code);
+            const originalScore = answer ? answer.score : 0;
+            const k3Score = answer ? (answer.score_k3 || originalScore) : 0;
+
+            html += `
+                <div class="verif-question-card" style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                    <div style="margin-bottom: 0.75rem;">
+                        <span style="font-size: 0.75rem; background: #6b7280; color: white; padding: 2px 8px; border-radius: 4px;">${q.code}</span>
+                        <p style="margin: 0.5rem 0 0; font-size: 0.875rem;">${q.question}</p>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div>
+                            <label style="font-size: 0.75rem; color: #6b7280; display: block;">Score Asli</label>
+                            <input type="text" value="${originalScore}" readonly style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 4px; background: #f9fafb;">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.75rem; color: #374151; font-weight: 600; display: block;">Score K3 <span class="required">*</span></label>
+                            <input type="number" class="k3-score-input" data-question-code="${q.code}" data-answer-id="${answer?.id || ''}"
+                                   value="${k3Score}" min="0" max="100" step="25" required
+                                   style="width: 100%; padding: 0.5rem; border: 1px solid #3b82f6; border-radius: 4px; font-weight: 600;">
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `
+                </div>
+            </div>
+        `;
+    }
+
+    modalBody.innerHTML = html;
+}
+
+function closeK3VerifModal() {
+    document.getElementById('k3VerifModal').classList.remove('active');
+    currentK3VerifAssessmentId = null;
+    currentK3VerifAnswers = null;
+}
+
+async function submitK3Verification() {
+    if (!currentK3VerifAssessmentId) return;
+    if (!currentK3VerifAnswers) {
+        Swal.fire('Error', 'Data answers tidak tersedia', 'error');
+        return;
+    }
+
+    console.log('currentK3VerifAnswers:', currentK3VerifAnswers);
+
+    // Collect all K3 scores
+    const k3ScoreInputs = document.querySelectorAll('.k3-score-input');
+    const updates = [];
+
+    for (const input of k3ScoreInputs) {
+        const questionCode = input.dataset.questionCode;
+        const answerId = input.dataset.answerId;
+        const scoreK3 = parseInt(input.value);
+
+        console.log(`Input: question=${questionCode}, answerId=${answerId}, score=${scoreK3}`);
+
+        if (answerId && !isNaN(scoreK3)) {
+            updates.push({
+                id: answerId,
+                question_code: questionCode,
+                score_k3: scoreK3
+            });
+        }
+    }
+
+    console.log('Updates to send:', updates);
+
+    if (updates.length === 0) {
+        Swal.fire('Info', 'Tidak ada data untuk disimpan', 'info');
+        return;
+    }
+
+    try {
+        Swal.fire({
+            title: 'Menyimpan...',
+            text: 'Mohon tunggu sebentar',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        // Update setiap answer dengan score_k3 (loop karena Supabase tidak support bulk update langsung)
+        for (const update of updates) {
+            console.log(`Updating answer ${update.id} with score_k3=${update.score_k3}`);
+            await SupabaseAPI.patch('assessment_answers', { score_k3: update.score_k3 }, { 'id': `eq.${update.id}` });
+        }
+
+        // Update assessment dengan total_score
+        // Rumus: rata-rata dari (score asli + (score_k3 x 2))
+        let totalOriginalScore = 0;
+        let totalK3Score = 0;
+        const totalQuestions = updates.length;
+        let allHaveK3Score = true;
+
+        for (const update of updates) {
+            totalK3Score += update.score_k3;
+            // Ambil original score dari currentK3VerifAnswers
+            const answer = currentK3VerifAnswers.find(a => a.id === update.id);
+            if (answer) {
+                totalOriginalScore += (answer.score || 0);
+            }
+        }
+
+        const averageK3Score = totalK3Score / totalQuestions;
+
+        // Hanya hitung total_score jika semua sudah memiliki score_k3
+        const updateData = {
+            k3_verified_at: new Date().toISOString()
+        };
+
+        if (allHaveK3Score) {
+            const averageOriginalScore = totalOriginalScore / totalQuestions;
+            // Rumus: (rata-rata_score_asli + (rata-rata_score_k3 x 2)) / 2
+            updateData.total_score = (averageOriginalScore + (averageK3Score * 2)) / 2;
+        }
+
+        await SupabaseAPI.patch('assessments', updateData, { 'id': `eq.${currentK3VerifAssessmentId}` });
+
+        Swal.close();
+        closeK3VerifModal();
+        showToast('Verifikasi K3 berhasil disimpan');
+        renderAssessments(true); // Refresh table
+    } catch (e) {
+        console.error('Error saving K3 verification:', e);
+        Swal.close();
+        Swal.fire('Error', 'Gagal menyimpan verifikasi: ' + e.message, 'error');
+    }
 }
 
 function populateDivisiFilter() {
@@ -790,6 +1055,8 @@ async function handleSubmit(event) {
         const data = getFormData();
 
         // 1. Save to assessments table
+        // total_score tidak disimpan di sini karena belum ada score_k3
+        // total_score akan dihitung setelah K3 melakukan verifikasi
         const assessmentRecord = {
             user_id: data.user_id,
             divisi: data.divisi,
@@ -801,8 +1068,7 @@ async function handleSubmit(event) {
             r2_score: data.scores.r2,
             r3_score: data.scores.r3,
             r4_score: data.scores.r4,
-            r5_score: data.scores.r5,
-            total_score: data.scores.total
+            r5_score: data.scores.r5
         };
 
         let assessment_id;
@@ -1050,7 +1316,7 @@ function loadAssessmentFromSupabase(assessmentData) {
 function previewImages(input) {
     const field = input.id;
     const files = Array.from(input.files);
-    
+
     // Validasi jumlah file
     let existingImages = [];
     try {
@@ -1061,7 +1327,7 @@ function previewImages(input) {
                 existingImages = [stored];
             }
         }
-    } catch(e) {
+    } catch (e) {
         const stored = sessionStorage.getItem(field);
         if (stored) existingImages = [stored];
     }
@@ -1075,7 +1341,7 @@ function previewImages(input) {
         input.value = '';
         return;
     }
-    
+
     const invalidFiles = files.filter(f => f.size > 1024 * 1024);
     if (invalidFiles.length > 0) {
         Swal.fire({
@@ -1090,10 +1356,10 @@ function previewImages(input) {
     const processFile = (file) => {
         return new Promise((resolve) => {
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 // Compress image to save localStorage space
                 const img = new Image();
-                img.onload = function() {
+                img.onload = function () {
                     const canvas = document.createElement('canvas');
                     const MAX_WIDTH = 800;
                     const MAX_HEIGHT = 800;
@@ -1138,7 +1404,7 @@ function showImagePreview(field, imagesStrOrArr) {
 
     let images = [];
     if (typeof imagesStrOrArr === 'string') {
-        try { images = JSON.parse(imagesStrOrArr); } catch(e) { images = [imagesStrOrArr]; }
+        try { images = JSON.parse(imagesStrOrArr); } catch (e) { images = [imagesStrOrArr]; }
     } else {
         images = imagesStrOrArr || [];
     }
@@ -1169,11 +1435,11 @@ function removeImageIndex(field, index) {
     try {
         images = JSON.parse(sessionStorage.getItem(field) || '[]');
         if (!Array.isArray(images)) images = [images];
-    } catch(e) {
+    } catch (e) {
         const stored = sessionStorage.getItem(field);
         if (stored) images = [stored];
     }
-    
+
     images.splice(index, 1);
     sessionStorage.setItem(field, JSON.stringify(images));
     showImagePreview(field, images);
@@ -1190,7 +1456,7 @@ function getStoredImage(field) {
     try {
         const parsed = JSON.parse(val);
         return Array.isArray(parsed) ? parsed : [val];
-    } catch(e) {
+    } catch (e) {
         return [val];
     }
 }
@@ -1451,7 +1717,7 @@ function escapeHtml(text) {
 function togglePasswordVisibility(inputId, btn) {
     const input = document.getElementById(inputId);
     const icon = btn.querySelector('.eye-icon');
-    
+
     if (input.type === 'password') {
         input.type = 'text';
         btn.title = 'Sembunyikan Password';
@@ -1482,11 +1748,11 @@ function formatDate(isoString) {
 function showToast(message) {
     const toast = document.getElementById('toast');
     const toastMessage = document.getElementById('toastMessage');
-    
+
     if (toastMessage) {
         toastMessage.textContent = message;
     }
-    
+
     if (toast) {
         toast.classList.add('show');
         setTimeout(() => {
@@ -1498,7 +1764,7 @@ function showToast(message) {
 // =====================
 // Event Listeners
 // =====================
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Initialize TomSelect for dropdowns if available
     if (typeof TomSelect !== 'undefined') {
         const selectEls = ['#divisi', '#jabatan', '#periode'];
@@ -1620,7 +1886,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Close modal on outside click
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
             const modal = document.getElementById('detailModal');
             if (e.target === modal || e.target.classList.contains('modal-overlay')) {
                 closeModal();
@@ -1629,7 +1895,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Close modal on escape key
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
             closeModal();
         }
