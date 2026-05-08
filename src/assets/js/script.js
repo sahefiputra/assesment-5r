@@ -662,48 +662,65 @@ function renderCharts() {
 }
 
 function renderBarChart(avgScores) {
-    // Destroy chart yang sudah ada
-    if (barChartInstance) {
-        barChartInstance.destroy();
-    }
+    if (barChartInstance) barChartInstance.destroy();
 
     const ctx = document.getElementById('barChart').getContext('2d');
+
+    const labels = ['Ringkas', 'Rapi', 'Resik', 'Rawat', 'Rajin'];
+    const values = [avgScores.r1, avgScores.r2, avgScores.r3, avgScores.r4, avgScores.r5];
+    const colors = ['#1e6fdc', '#10b981', '#06b6d4', '#f59e0b', '#7c3aed'];
+    const lightColors = ['rgba(30,111,220,.12)', 'rgba(16,185,129,.12)', 'rgba(6,182,212,.12)', 'rgba(245,158,11,.12)', 'rgba(124,58,237,.12)'];
+
+    // Update avg badge
+    const avgBadge = document.getElementById('avgTotalBadge');
+    if (avgBadge) avgBadge.textContent = 'Avg: ' + avgScores.total.toFixed(1);
+
     barChartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['Ringkas (R1)', 'Rapi (R2)', 'Resik (R3)', 'Rawat (R4)', 'Rajin (R5)'],
+            labels,
             datasets: [{
-                label: 'Rata-rata Nilai',
-                data: [avgScores.r1, avgScores.r2, avgScores.r3, avgScores.r4, avgScores.r5],
-                backgroundColor: [
-                    'rgba(99, 102, 241, 0.8)',
-                    'rgba(16, 185, 129, 0.8)',
-                    'rgba(6, 182, 212, 0.8)',
-                    'rgba(245, 158, 11, 0.8)',
-                    'rgba(139, 92, 246, 0.8)'
-                ],
-                borderColor: [
-                    'rgb(99, 102, 241)',
-                    'rgb(16, 185, 129)',
-                    'rgb(6, 182, 212)',
-                    'rgb(245, 158, 11)',
-                    'rgb(139, 92, 246)'
-                ],
-                borderWidth: 2,
-                borderRadius: 8
+                label: 'Rata-rata Skor',
+                data: values,
+                backgroundColor: colors.map((c, i) => lightColors[i]),
+                borderColor: colors,
+                borderWidth: 2.5,
+                borderRadius: 10,
+                borderSkipped: false,
+                hoverBackgroundColor: colors.map(c => c + 'cc')
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { display: false }
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#0f172a',
+                    titleColor: '#94a3b8',
+                    bodyColor: '#fff',
+                    padding: 12,
+                    cornerRadius: 10,
+                    callbacks: {
+                        label: ctx => ' ' + ctx.parsed.y.toFixed(1) + ' / 100'
+                    }
+                }
             },
             scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { size: 12, weight: '600' }, color: '#475569' }
+                },
                 y: {
                     beginAtZero: true,
                     max: 100,
-                    ticks: { callback: value => value + '%' }
+                    grid: { color: 'rgba(0,0,0,.06)', drawBorder: false },
+                    ticks: {
+                        font: { size: 11 },
+                        color: '#94a3b8',
+                        callback: v => v
+                    },
+                    border: { display: false }
                 }
             }
         }
@@ -765,54 +782,89 @@ function renderLineChart(assessments) {
 }
 
 function renderPieChart(assessments) {
-    // Destroy chart yang sudah ada
-    if (pieChartInstance) {
-        pieChartInstance.destroy();
-    }
+    if (pieChartInstance) pieChartInstance.destroy();
 
     const divisiData = {};
     assessments.forEach(a => {
         divisiData[a.divisi] = (divisiData[a.divisi] || 0) + 1;
     });
 
+    const labels = Object.keys(divisiData);
+    const values = Object.values(divisiData);
+    const total = values.reduce((s, v) => s + v, 0);
+
+    const COLORS = [
+        '#1e6fdc','#10b981','#06b6d4','#f59e0b','#7c3aed',
+        '#ef4444','#ec4899','#14b8a6','#84cc16','#f97316',
+        '#0ea5e9','#a855f7'
+    ];
+
+    // Update badge
+    const badge = document.getElementById('totalDivisiCount');
+    if (badge) badge.textContent = labels.length + ' Divisi';
+
+    // Build custom legend
+    const legendEl = document.getElementById('donutLegend');
+    if (legendEl) {
+        legendEl.innerHTML = labels.map((lbl, i) => `
+            <div class="db-legend-item">
+                <div class="db-legend-dot" style="background:${COLORS[i % COLORS.length]}"></div>
+                <span class="db-legend-name">${lbl}</span>
+                <span class="db-legend-count">${values[i]}</span>
+            </div>
+        `).join('');
+    }
+
     const ctx = document.getElementById('pieChart').getContext('2d');
     pieChartInstance = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: Object.keys(divisiData),
+            labels,
             datasets: [{
-                data: Object.values(divisiData),
-                backgroundColor: [
-                    'rgba(99, 102, 241, 0.8)',
-                    'rgba(16, 185, 129, 0.8)',
-                    'rgba(6, 182, 212, 0.8)',
-                    'rgba(245, 158, 11, 0.8)',
-                    'rgba(139, 92, 246, 0.8)',
-                    'rgba(239, 68, 68, 0.8)',
-                    'rgba(236, 72, 153, 0.8)',
-                    'rgba(20, 184, 166, 0.8)',
-                    'rgba(132, 204, 22, 0.8)',
-                    'rgba(249, 115, 22, 0.8)',
-                    'rgba(99, 102, 241, 0.6)',
-                    'rgba(16, 185, 129, 0.6)'
-                ],
-                borderWidth: 0
+                data: values,
+                backgroundColor: COLORS.slice(0, labels.length),
+                hoverBackgroundColor: COLORS.slice(0, labels.length).map(c => c + 'dd'),
+                borderWidth: 3,
+                borderColor: '#ffffff',
+                hoverOffset: 8
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
+            maintainAspectRatio: true,
+            cutout: '70%',
             plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        boxWidth: 12,
-                        padding: 10,
-                        font: { size: 10 }
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#0f172a',
+                    titleColor: '#94a3b8',
+                    bodyColor: '#fff',
+                    padding: 12,
+                    cornerRadius: 10,
+                    callbacks: {
+                        label: ctx => ` ${ctx.label}: ${ctx.raw} (${((ctx.raw/total)*100).toFixed(1)}%)`
                     }
                 }
             }
-        }
+        },
+        plugins: [{
+            id: 'centerText',
+            afterDraw(chart) {
+                const { ctx, chartArea: { width, height, left, top } } = chart;
+                ctx.save();
+                const cx = left + width / 2;
+                const cy = top + height / 2;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#0f172a';
+                ctx.font = 'bold 22px Inter, sans-serif';
+                ctx.fillText(total, cx, cy - 10);
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '11px Inter, sans-serif';
+                ctx.fillText('Total', cx, cy + 12);
+                ctx.restore();
+            }
+        }]
     });
 }
 

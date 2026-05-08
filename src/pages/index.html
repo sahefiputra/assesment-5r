@@ -5,8 +5,206 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Self Assessment 5R - Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        /* ── Dashboard overview row: stats kiri + chart kanan ── */
+        .db-overview {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 1.5rem;
+            padding: 0 2rem 1.5rem;
+        }
+
+        /* ── Stat cards stack ── */
+        .db-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .db-stat-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .05), 0 4px 20px rgba(30, 111, 220, .07);
+            transition: transform .2s, box-shadow .2s;
+            border-left: 4px solid transparent;
+        }
+
+        .db-stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 24px rgba(30, 111, 220, .14);
+        }
+
+        .db-stat-card.primary {
+            border-left-color: #1e6fdc;
+        }
+
+        .db-stat-card.teal {
+            border-left-color: #10b981;
+        }
+
+        .db-stat-ico {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .db-stat-card.primary .db-stat-ico {
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            color: #1e6fdc;
+        }
+
+        .db-stat-card.teal .db-stat-ico {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: #10b981;
+        }
+
+        .db-stat-info {
+            flex: 1;
+        }
+
+        .db-stat-val {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .db-stat-label {
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: #64748b;
+        }
+
+        .db-stat-trend {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        /* ── Donut Chart Card ── */
+        .db-chart-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px 24px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .05), 0 4px 20px rgba(30, 111, 220, .07);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .db-chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .db-chart-title {
+            font-size: .88rem;
+            font-weight: 700;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .db-chart-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #1e6fdc;
+            display: inline-block;
+        }
+
+        .db-chart-badge {
+            font-size: .68rem;
+            font-weight: 600;
+            color: #1e6fdc;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+
+        .db-donut-wrap {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .db-canvas-box {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            flex-shrink: 0;
+        }
+
+        .db-legend {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 160px;
+            overflow-y: auto;
+        }
+
+        .db-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: .73rem;
+            color: #334155;
+            line-height: 1.3;
+        }
+
+        .db-legend-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        .db-legend-name {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .db-legend-count {
+            font-weight: 700;
+            color: #1e6fdc;
+            min-width: 18px;
+            text-align: right;
+        }
+
+        /* hidden when no data */
+        #chartsSection {
+            display: none;
+        }
+
+        /* ── Table card ── */
+        .card {
+            margin: 0 2rem 2rem;
+        }
+
+        @media (max-width: 1000px) {
+            .db-overview {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -23,35 +221,90 @@
                 <div id="userInfo"></div>
             </header>
 
-            <!-- Stats Cards -->
-            <div class="stats-grid">
+            <!-- Overview: Stats + Chart -->
+            <div id="chartsSection">
+                <div class="db-overview">
+
+                    <!-- Kiri: Stat Cards -->
+                    <div class="db-stats">
+                        <!-- Total Assessment -->
+                        <div class="db-stat-card primary">
+                            <div class="db-stat-ico">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </div>
+                            <div class="db-stat-info">
+                                <div class="db-stat-val" id="statTotal">0</div>
+                                <div class="db-stat-label">Total Assessment</div>
+                                <div class="db-stat-trend">Semua periode</div>
+                            </div>
+                        </div>
+
+                        <!-- Divisi Terdaftar -->
+                        <div class="db-stat-card teal">
+                            <div class="db-stat-ico">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path
+                                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </div>
+                            <div class="db-stat-info">
+                                <div class="db-stat-val" id="statDivisi">0</div>
+                                <div class="db-stat-label">Divisi Terdaftar</div>
+                                <div class="db-stat-trend">Divisi unik</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kanan: Donut Chart -->
+                    <div class="db-chart-card">
+                        <div class="db-chart-header">
+                            <div class="db-chart-title">
+                                <span class="db-chart-dot"></span>
+                                Distribusi per Divisi
+                            </div>
+                            <span class="db-chart-badge" id="totalDivisiCount">0 Divisi</span>
+                        </div>
+                        <div class="db-donut-wrap">
+                            <div class="db-canvas-box">
+                                <canvas id="pieChart"></canvas>
+                            </div>
+                            <div class="db-legend" id="donutLegend"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Stats fallback saat belum ada data -->
+            <!-- <div id="statsFallback" class="stats-grid">
                 <div class="stat-card stat-primary">
                     <div class="stat-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path
-                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
                     </div>
                     <div class="stat-content">
-                        <span class="stat-value" id="statTotal">0</span>
+                        <span class="stat-value" id="statTotalFallback">0</span>
                         <span class="stat-label">Total Assessment</span>
                     </div>
                 </div>
                 <div class="stat-card stat-info">
                     <div class="stat-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path
-                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
                         </svg>
                     </div>
                     <div class="stat-content">
-                        <span class="stat-value" id="statDivisi">0</span>
+                        <span class="stat-value" id="statDivisiFallback">0</span>
                         <span class="stat-label">Divisi Terdaftar</span>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
             <!-- Assessment List -->
             <div class="card">
@@ -69,9 +322,9 @@
                         <button class="btn btn-success k3-only" onclick="exportToExcel()" style="display: none;">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                <polyline points="7 10 12 15 17 10"/>
-                                <line x1="12" y1="15" x2="12" y2="3"/>
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="7 10 12 15 17 10" />
+                                <line x1="12" y1="15" x2="12" y2="3" />
                             </svg>
                             Export Excel
                         </button>
@@ -93,6 +346,7 @@
                                     <th>Divisi</th>
                                     <th>Jabatan</th>
                                     <th>Tanggal Isi</th>
+                                    <th>Total Score</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
@@ -129,13 +383,11 @@
                     </svg>
                 </button>
             </div>
-            <div class="modal-body" id="modalBody">
-                <!-- Content akan diisi via JavaScript -->
-            </div>
+            <div class="modal-body" id="modalBody"></div>
         </div>
     </div>
 
-    <!-- Toast Notification -->
+    <!-- Toast -->
     <div id="toast" class="toast">
         <div class="toast-content">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -144,6 +396,7 @@
             <span id="toastMessage">Data berhasil disimpan</span>
         </div>
     </div>
+
     <!-- Modal Verifikasi K3 -->
     <div id="k3VerifModal" class="modal">
         <div class="modal-overlay" onclick="closeK3VerifModal()"></div>
@@ -156,9 +409,7 @@
                     </svg>
                 </button>
             </div>
-            <div class="modal-body" id="k3VerifModalBody">
-                <!-- Content akan diisi via JavaScript -->
-            </div>
+            <div class="modal-body" id="k3VerifModalBody"></div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline" onclick="closeK3VerifModal()">Batal</button>
                 <button type="button" class="btn btn-primary" onclick="submitK3Verification()">Simpan
@@ -167,9 +418,47 @@
         </div>
     </div>
 
+    <script>
+        // Sync stat fallback → overview saat ada data
+        const _origUpdateStats = window.updateStats;
+        document.addEventListener('DOMContentLoaded', () => {
+            const observer = new MutationObserver(() => {
+                const v1 = document.getElementById('statTotal')?.textContent;
+                const v2 = document.getElementById('statDivisi')?.textContent;
+                const fb1 = document.getElementById('statTotalFallback');
+                const fb2 = document.getElementById('statDivisiFallback');
+                if (fb1 && v1) fb1.textContent = v1;
+                if (fb2 && v2) fb2.textContent = v2;
+            });
+            const t = document.getElementById('statTotal');
+            const d = document.getElementById('statDivisi');
+            if (t) observer.observe(t, { childList: true, characterData: true, subtree: true });
+            if (d) observer.observe(d, { childList: true, characterData: true, subtree: true });
+        });
+
+        // Override donutLegend to use new class names
+        const _origRenderPie = window.renderPieChart;
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="assets/js/api.js"></script>
     <script src="assets/js/script.js"></script>
+
+    <script>
+        // Patch legend & chart untuk pakai class db-legend
+        const _patchLegend = () => {
+            const legendEl = document.getElementById('donutLegend');
+            if (!legendEl) return;
+            // re-style items jika sudah di-render
+            legendEl.querySelectorAll('.donut-legend-item').forEach(el => {
+                el.classList.add('db-legend-item');
+                el.querySelectorAll('.donut-legend-dot').forEach(d => d.classList.add('db-legend-dot'));
+                el.querySelectorAll('.donut-legend-label').forEach(d => d.classList.add('db-legend-name'));
+                el.querySelectorAll('.donut-legend-val').forEach(d => d.classList.add('db-legend-count'));
+            });
+        };
+        setTimeout(_patchLegend, 1500);
+    </script>
 </body>
 
 </html>

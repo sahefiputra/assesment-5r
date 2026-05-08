@@ -4,134 +4,660 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - 5R Assessment</title>
+    <title>Login - TRACE SIER | 5R Monitoring System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body { height: 100%; }
+
+        body.login-page {
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+            background: #0b1f5e;
+        }
+
+        /* ═══════════════════════════════════
+           LEFT PANEL — Form
+        ═══════════════════════════════════ */
+        .lp-left {
+            width: 44%;
+            flex-shrink: 0;
+            height: 100vh;
+            background: linear-gradient(170deg, #0a1c54 0%, #0d2a6e 50%, #102c80 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 56px;
+            position: relative;
+            z-index: 2;
+            overflow-y: auto;
+        }
+
+        /* subtle glow behind card */
+        .lp-left::before {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(30,111,220,0.18) 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        .lp-card {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 44px 48px 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow:
+                0 32px 80px rgba(0, 0, 0, 0.35),
+                0 0 0 1px rgba(255,255,255,0.08);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── Brand ── */
+        .lp-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e8edf5;
+            margin-bottom: 8px;
+        }
+
+        .lp-brand-icon {
+            width: 46px;
+            height: 46px;
+            background: linear-gradient(135deg, #0d2a6e 0%, #1558b0 60%, #1e6fdc 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 14px rgba(21,88,176,0.4);
+        }
+
+        .lp-brand-sep {
+            width: 1px;
+            height: 38px;
+            background: #dde3ee;
+            flex-shrink: 0;
+        }
+
+        .lp-brand-text strong {
+            display: block;
+            font-size: 1rem;
+            font-weight: 800;
+            color: #0a1c54;
+            letter-spacing: 0.01em;
+        }
+
+        .lp-brand-text span {
+            font-size: 0.7rem;
+            color: #6b7fa3;
+            font-weight: 500;
+        }
+
+        .lp-brand-company {
+            font-size: 0.7rem;
+            color: #8da0c4;
+            line-height: 1.5;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        /* ── Company tag ── */
+        .lp-company-tag {
+            text-align: center;
+            margin: 14px 0 28px;
+            font-size: 0.78rem;
+            color: #1e6fdc;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+        }
+
+        /* ── Heading ── */
+        .lp-heading {
+            margin-bottom: 28px;
+        }
+
+        .lp-heading h1 {
+            font-size: 1.55rem;
+            font-weight: 800;
+            color: #0a1c54;
+            line-height: 1.25;
+            margin-bottom: 6px;
+        }
+
+        .lp-heading p {
+            font-size: 0.82rem;
+            color: #7b8fad;
+            line-height: 1.6;
+        }
+
+        /* ── Fields ── */
+        .lp-fields { display: flex; flex-direction: column; gap: 18px; }
+
+        .lp-field { display: flex; flex-direction: column; gap: 7px; }
+
+        .lp-field-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .lp-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #2d3f61;
+        }
+
+        .lp-forgot {
+            font-size: 0.75rem;
+            color: #1e6fdc;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .lp-forgot:hover { text-decoration: underline; }
+
+        .lp-input-box {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .lp-input-ico {
+            position: absolute;
+            left: 14px;
+            color: #a8b8d0;
+            display: flex;
+            align-items: center;
+            pointer-events: none;
+            transition: color .18s;
+        }
+
+        .lp-input-box:focus-within .lp-input-ico { color: #1e6fdc; }
+
+        .lp-input-box input {
+            width: 100%;
+            padding: 13px 14px 13px 44px;
+            border: 1.5px solid #dde3ee;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-family: 'Inter', sans-serif;
+            color: #0a1c54;
+            background: #f5f8ff;
+            outline: none;
+            transition: all .18s;
+        }
+
+        .lp-input-box input::placeholder { color: #a8b8d0; }
+
+        .lp-input-box input:focus {
+            border-color: #1e6fdc;
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(30,111,220,0.1);
+        }
+
+        .lp-pw-btn {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #a8b8d0;
+            display: flex;
+            align-items: center;
+            padding: 4px;
+            border-radius: 6px;
+            transition: color .18s;
+        }
+        .lp-pw-btn:hover { color: #1e6fdc; }
+
+        /* ── Error ── */
+        .lp-error {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 14px;
+            background: #fff5f5;
+            border: 1px solid #ffd0d0;
+            border-radius: 10px;
+            color: #d94040;
+            font-size: 0.8rem;
+            font-weight: 500;
+            animation: lp-shake .4s ease;
+        }
+
+        @keyframes lp-shake {
+            0%,100% { transform: translateX(0); }
+            25%      { transform: translateX(-5px); }
+            75%      { transform: translateX(5px); }
+        }
+
+        /* ── Submit ── */
+        .lp-submit {
+            width: 100%;
+            padding: 14px 20px;
+            margin-top: 8px;
+            background: linear-gradient(135deg, #0d2a6e 0%, #1558b0 50%, #1e6fdc 100%);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 0.95rem;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all .2s;
+            box-shadow: 0 6px 22px rgba(21,88,176,0.45);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .lp-submit::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,.14) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity .2s;
+        }
+
+        .lp-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(21,88,176,0.55);
+        }
+        .lp-submit:hover::after { opacity: 1; }
+        .lp-submit:active { transform: translateY(0); }
+        .lp-submit svg { transition: transform .2s; flex-shrink: 0; }
+        .lp-submit:hover svg { transform: translateX(4px); }
+
+        /* ── Guide ── */
+        .lp-guide {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eef0f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            color: #8da0c4;
+            font-size: 0.78rem;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: color .18s;
+        }
+        .lp-guide:hover { color: #1e6fdc; }
+
+        /* ═══════════════════════════════════
+           RIGHT PANEL — Image full height
+        ═══════════════════════════════════ */
+        .lp-right {
+            flex: 1;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+        }
+
+        .lp-right-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center top;
+        }
+
+        /* Blue overlay */
+        .lp-right-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                160deg,
+                rgba(10, 28, 84, 0.78) 0%,
+                rgba(13, 42, 110, 0.65) 45%,
+                rgba(8, 25, 80, 0.72) 100%
+            );
+        }
+
+        /* Dot grid */
+        .lp-dot-grid {
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px);
+            background-size: 30px 30px;
+            pointer-events: none;
+        }
+
+        .lp-right-body {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            padding: 52px 52px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .lp-right-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.12);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .lp-badge-dot {
+            width: 6px;
+            height: 6px;
+            background: #60a5fa;
+            border-radius: 50%;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%,100% { opacity: 1; }
+            50%      { opacity: 0.3; }
+        }
+
+        .lp-right-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: white;
+            line-height: 1.3;
+            margin-bottom: 6px;
+            text-shadow: 0 2px 16px rgba(0,0,0,0.25);
+        }
+
+        .lp-right-title .accent {
+            color: #60a5fa;
+        }
+
+        .lp-divider {
+            width: 44px;
+            height: 3px;
+            background: linear-gradient(90deg, #1e6fdc, #60a5fa);
+            border-radius: 2px;
+            margin: 18px 0 20px;
+        }
+
+        .lp-right-desc {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.78);
+            line-height: 1.75;
+            max-width: 380px;
+            margin-bottom: 32px;
+        }
+
+        /* 5R Cards */
+        .lp-5r {
+            display: flex;
+            gap: 12px;
+        }
+
+        .lp-5r-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 18px 10px 16px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 16px;
+            transition: all .22s;
+            cursor: default;
+        }
+
+        .lp-5r-item:hover {
+            background: rgba(30,111,220,0.28);
+            border-color: rgba(96,165,250,0.45);
+            transform: translateY(-4px);
+        }
+
+        .lp-5r-ico {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .lp-5r-ico svg { color: white; }
+
+        .lp-5r-name {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .lp-5r-desc {
+            font-size: 0.66rem;
+            color: rgba(255,255,255,0.68);
+            text-align: center;
+            line-height: 1.45;
+        }
+
+        /* Responsive */
+        @media (max-width: 960px) {
+            .lp-right { display: none; }
+            .lp-left  { width: 100%; height: auto; min-height: 100vh; }
+        }
+    </style>
 </head>
 
 <body class="login-page">
-    <!-- Background Elements -->
-    <div class="login-bg-shape shape-1"></div>
-    <div class="login-bg-shape shape-2"></div>
-    <div class="login-bg-shape shape-3"></div>
 
-    <div class="login-container">
-        <div class="login-card">
-            <!-- Logo & Title -->
-            <div class="login-logo">
-                <div class="logo-icon">
-                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                        <rect width="48" height="48" rx="12" fill="url(#logoGradient)" />
-                        <path d="M14 20h20M14 26h20M14 32h12" stroke="white" stroke-width="3" stroke-linecap="round" />
-                        <defs>
-                            <linearGradient id="logoGradient" x1="0" y1="0" x2="48" y2="48">
-                                <stop stop-color="#818cf8" />
-                                <stop offset="1" stop-color="#6366f1" />
-                            </linearGradient>
-                        </defs>
+    <!-- ═══ LEFT: Form Card ═══ -->
+    <div class="lp-left">
+        <div class="lp-card">
+
+            <!-- Brand -->
+            <div class="lp-brand">
+                <div class="lp-brand-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <rect x="9" y="3" width="6" height="4" rx="1" stroke="white" stroke-width="2"/>
+                        <path d="M9 12h6M9 16h4" stroke="white" stroke-width="2" stroke-linecap="round"/>
                     </svg>
                 </div>
-                <h1>Selamat Datang</h1>
-                <p>Masuk ke sistem Self Assessment 5R</p>
+                <div class="lp-brand-sep"></div>
+                <div class="lp-brand-text">
+                    <strong>TRACE SIER</strong>
+                    <span>5R Monitoring System</span>
+                </div>
             </div>
 
+            <p class="lp-company-tag">PT Surabaya Industrial Estate Rungkut</p>
+
+            <!-- Heading -->
+            <div class="lp-heading">
+                <h1>Selamat Datang</h1>
+                <p>Masuk ke sistem Self Assessment 5R untuk memantau dan meningkatkan kualitas lingkungan kerja.</p>
+            </div>
+
+            <!-- Form -->
             <form id="loginForm" onsubmit="handleLogin(event)">
-                <div class="input-group">
-                    <div class="input-icon">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                            <circle cx="12" cy="7" r="4" />
-                        </svg>
+                <div class="lp-fields">
+
+                    <!-- Username -->
+                    <div class="lp-field">
+                        <div class="lp-field-top">
+                            <label class="lp-label" for="username">Email / Username</label>
+                        </div>
+                        <div class="lp-input-box">
+                            <span class="lp-input-ico">
+                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                                    <circle cx="12" cy="7" r="4"/>
+                                </svg>
+                            </span>
+                            <input type="text" id="username" name="username" required placeholder="superadmin" autocomplete="username">
+                        </div>
                     </div>
-                    <input type="text" id="username" name="username" required placeholder="Username"
-                        autocomplete="username">
+
+                    <!-- Password -->
+                    <div class="lp-field">
+                        <div class="lp-field-top">
+                            <label class="lp-label" for="password">Password</label>
+                            <a class="lp-forgot" href="#">Lupa Password?</a>
+                        </div>
+                        <div class="lp-input-box">
+                            <span class="lp-input-ico">
+                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                    <path d="M7 11V7a5 5 0 0110 0v4"/>
+                                </svg>
+                            </span>
+                            <input type="password" id="password" name="password" required placeholder="••••••••••" autocomplete="current-password">
+                            <button type="button" class="lp-pw-btn" onclick="togglePasswordVisibility('password', this)" title="Lihat Password">
+                                <svg class="eye-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                    <circle cx="12" cy="12" r="3"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
                 </div>
 
-                <div class="input-group">
-                    <div class="input-icon">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                            <path d="M7 11V7a5 5 0 0110 0v4" />
-                        </svg>
-                    </div>
-                    <div class="password-wrapper">
-                        <input type="password" id="password" name="password" required placeholder="Password"
-                            autocomplete="current-password">
-                        <button type="button" class="password-toggle"
-                            onclick="togglePasswordVisibility('password', this)" title="Lihat Password">
-                            <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                                <circle cx="12" cy="12" r="3" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-
-                <div id="loginError" class="error-message" style="display: none;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10" />
-                        <path d="M12 8v4m0 4h.01" />
+                <!-- Error -->
+                <div id="loginError" class="lp-error" style="margin-top:16px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 8v4m0 4h.01"/>
                     </svg>
                     <span>Username atau password salah</span>
                 </div>
 
-                <button type="submit" class="btn-login">
-                    <span>Login</span>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M5 12h14M12 5l7 7-7 7" />
+                <!-- Submit -->
+                <button type="submit" class="lp-submit" id="loginBtn">
+                    <span>Masuk</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
                     </svg>
                 </button>
+
             </form>
 
-            <!-- Demo Accounts -->
-            <!-- <div class="login-info">
-                <div class="info-header">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <path d="M12 16v-4m0-4h.01"/>
-                    </svg>
-                    <span>Akun Demo</span>
-                </div>
-                <div class="demo-accounts">
-                    <div class="demo-card demo-user">
-                        <div class="demo-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
-                                <circle cx="12" cy="7" r="4"/>
-                            </svg>
-                        </div>
-                        <div class="demo-info">
-                            <div class="demo-cred">
-                                <code>user</code>
-                                <span class="separator">/</span>
-                                <code>user123</code>
-                            </div>
-                            <span class="role-badge">User</span>
-                        </div>
-                    </div>
-                    <div class="demo-card demo-k3">
-                        <div class="demo-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                            </svg>
-                        </div>
-                        <div class="demo-info">
-                            <div class="demo-cred">
-                                <code>k3</code>
-                                <span class="separator">/</span>
-                                <code>k3admin</code>
-                            </div>
-                            <span class="role-badge role-k3">K3</span>
-                        </div>
-                    </div>
-                </div>
-            </div> -->
+            <!-- Guide -->
+            <a class="lp-guide" href="#">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01"/>
+                </svg>
+                Panduan Penggunaan
+            </a>
 
-            <!-- Footer -->
-            <div class="login-footer">
-                <p>&copy; 2026 5R Assessment System</p>
+        </div>
+    </div>
+
+    <!-- ═══ RIGHT: Image Panel ═══ -->
+    <div class="lp-right">
+        <img class="lp-right-img" src="assets/img/bg-login.webp" alt="Gedung PT SIER">
+        <div class="lp-right-overlay"></div>
+        <div class="lp-dot-grid"></div>
+
+        <div class="lp-right-body">
+            <div class="lp-right-badge">
+                <div class="lp-badge-dot"></div>
+                Sistem Digital Aktif
+            </div>
+
+            <h2 class="lp-right-title">
+                Digitalisasi untuk<br>
+                Lingkungan Kerja yang<br>
+                <span class="accent">Bersih, Rapi, Aman &amp; Efisien</span>
+            </h2>
+
+            <div class="lp-divider"></div>
+
+            <p class="lp-right-desc">
+                TRACE SIER adalah sistem digital untuk memantau, menilai, dan meningkatkan
+                penerapan budaya 5R di seluruh area kerja secara terstruktur dan berkelanjutan.
+            </p>
+
+            <!-- 5R Feature Cards -->
+            <div class="lp-5r">
+                <div class="lp-5r-item">
+                    <div class="lp-5r-ico">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <span class="lp-5r-name">Ringkas</span>
+                    <span class="lp-5r-desc">Memilah dan menyingkirkan barang yang tidak diperlukan</span>
+                </div>
+                <div class="lp-5r-item">
+                    <div class="lp-5r-ico">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="3" width="20" height="14" rx="2"/>
+                            <path d="M8 21h8M12 17v4"/>
+                        </svg>
+                    </div>
+                    <span class="lp-5r-name">Rapi</span>
+                    <span class="lp-5r-desc">Menata dan menyimpan barang sesuai tempatnya</span>
+                </div>
+                <div class="lp-5r-item">
+                    <div class="lp-5r-ico">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                    </div>
+                    <span class="lp-5r-name">Resik</span>
+                    <span class="lp-5r-desc">Menjaga kebersihan area kerja dan peralatan</span>
+                </div>
+                <div class="lp-5r-item">
+                    <div class="lp-5r-ico">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>
+                        </svg>
+                    </div>
+                    <span class="lp-5r-name">Rawat</span>
+                    <span class="lp-5r-desc">Merawat fasilitas dan peralatan agar selalu siap digunakan</span>
+                </div>
+                <div class="lp-5r-item">
+                    <div class="lp-5r-ico">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                    </div>
+                    <span class="lp-5r-name">Rajin</span>
+                    <span class="lp-5r-desc">Membiasakan diri menerapkan 5R secara disiplin dan rutin</span>
+                </div>
             </div>
         </div>
     </div>

@@ -8,31 +8,31 @@
 }
 
 :root {
-    /* Colors */
-    --primary: #6366f1;
-    --primary-dark: #4f46e5;
-    --primary-light: #818cf8;
+    /* Colors - Black Blue Theme */
+    --primary: #1e6fdc;
+    --primary-dark: #1558b0;
+    --primary-light: #4a9eff;
     --secondary: #10b981;
     --warning: #f59e0b;
     --danger: #ef4444;
-    --info: #3b82f6;
-    --gray-50: #f9fafb;
-    --gray-100: #f3f4f6;
-    --gray-200: #e5e7eb;
-    --gray-300: #d1d5db;
-    --gray-400: #9ca3af;
-    --gray-500: #6b7280;
-    --gray-600: #4b5563;
-    --gray-700: #374151;
-    --gray-800: #1f2937;
-    --gray-900: #111827;
+    --info: #2563eb;
+    --gray-50: #f0f4f8;
+    --gray-100: #e2e8f0;
+    --gray-200: #cbd5e1;
+    --gray-300: #94a3b8;
+    --gray-400: #64748b;
+    --gray-500: #475569;
+    --gray-600: #334155;
+    --gray-700: #1e293b;
+    --gray-800: #0f172a;
+    --gray-900: #020617;
 
     /* 5R Colors */
-    --ringkas: #6366f1;
+    --ringkas: #1e6fdc;
     --rapi: #10b981;
     --resik: #06b6d4;
     --rawat: #f59e0b;
-    --rajin: #8b5cf6;
+    --rajin: #7c3aed;
 
     /* Spacing */
     --space-1: 0.25rem;
@@ -69,9 +69,9 @@ html {
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background-color: var(--gray-50);
-    color: var(--gray-800);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #f0f6ff;
+    color: #1e293b;
     line-height: 1.6;
     min-height: 100vh;
 }
@@ -85,7 +85,7 @@ body {
 /* Sidebar */
 .sidebar {
     width: 280px;
-    background: linear-gradient(180deg, #1e1b4b 0%, #312e81 100%);
+    background: linear-gradient(180deg, #020617 0%, #0f172a 60%, #1e293b 100%);
     color: white;
     display: flex;
     flex-direction: column;
@@ -94,6 +94,7 @@ body {
     height: 100vh;
     overflow-y: auto;
     flex-shrink: 0;
+    border-right: 1px solid rgba(30, 111, 220, 0.2);
 }
 
 .sidebar-header {
@@ -131,13 +132,14 @@ body {
 }
 
 .nav-item:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(30, 111, 220, 0.2);
     color: white;
 }
 
 .nav-item.active {
-    background: rgba(255, 255, 255, 0.15);
+    background: linear-gradient(135deg, rgba(30, 111, 220, 0.4), rgba(74, 158, 255, 0.2));
     color: white;
+    border-left: 3px solid var(--primary-light);
 }
 
 .nav-item svg {
@@ -1276,7 +1278,7 @@ body {
 
 /* Login Page */
 .login-page {
-    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #db2777 100%);
+    background: linear-gradient(135deg, #020617 0%, #0c1a35 40%, #0f2555 100%);
     min-height: 100vh;
     display: flex;
     align-items: center;
@@ -1290,8 +1292,9 @@ body {
 .login-bg-shape {
     position: absolute;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(30, 111, 220, 0.08);
     backdrop-filter: blur(10px);
+    border: 1px solid rgba(30, 111, 220, 0.15);
 }
 
 .login-bg-shape.shape-1 {
@@ -1342,14 +1345,14 @@ body {
 }
 
 .login-card {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
+    background: rgba(10, 20, 45, 0.85);
+    backdrop-filter: blur(24px);
     border-radius: 24px;
     padding: var(--space-10) var(--space-8);
     box-shadow:
-        0 25px 50px -12px rgba(0, 0, 0, 0.25),
-        0 0 0 1px rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+        0 25px 60px -12px rgba(0, 0, 0, 0.6),
+        0 0 0 1px rgba(30, 111, 220, 0.2);
+    border: 1px solid rgba(30, 111, 220, 0.25);
     animation: slideUp 0.5s ease-out;
     max-width: 700px;
     margin: 0 auto;
@@ -1378,12 +1381,12 @@ body {
     justify-content: center;
     width: 72px;
     height: 72px;
-    background: linear-gradient(135deg, var(--primary-light), var(--primary));
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
     border-radius: 20px;
     margin-bottom: var(--space-5);
     box-shadow:
-        0 10px 30px rgba(99, 102, 241, 0.3),
-        0 4px 10px rgba(99, 102, 241, 0.2);
+        0 10px 30px rgba(30, 111, 220, 0.4),
+        0 4px 10px rgba(74, 158, 255, 0.3);
     animation: pulse 2s ease-in-out infinite;
 }
 
@@ -1402,7 +1405,7 @@ body {
 .login-logo h1 {
     font-size: 1.75rem;
     font-weight: 800;
-    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    background: linear-gradient(135deg, var(--primary-light), #7dd3fc);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -1410,7 +1413,7 @@ body {
 }
 
 .login-logo p {
-    color: var(--gray-500);
+    color: rgba(148, 163, 184, 0.9);
     font-size: 0.9375rem;
 }
 
@@ -1425,7 +1428,7 @@ body {
     left: var(--space-4);
     top: 50%;
     transform: translateY(-50%);
-    color: var(--gray-400);
+    color: rgba(148, 163, 184, 0.6);
     pointer-events: none;
     transition: color var(--transition-fast);
 }
@@ -1433,27 +1436,28 @@ body {
 .input-group input {
     width: 100%;
     padding: var(--space-4) var(--space-4) var(--space-4) var(--space-12);
-    border: 2px solid var(--gray-200);
+    border: 2px solid rgba(30, 111, 220, 0.2);
     border-radius: 14px;
     font-size: 0.9375rem;
     transition: all var(--transition-fast);
-    background: var(--gray-50);
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
 }
 
 .input-group input:focus {
     outline: none;
-    border-color: var(--primary);
-    background: white;
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    border-color: var(--primary-light);
+    background: rgba(30, 111, 220, 0.1);
+    box-shadow: 0 0 0 4px rgba(30, 111, 220, 0.15);
 }
 
 .input-group input:focus+.input-icon,
 .input-group input:not(:placeholder-shown)+.input-icon {
-    color: var(--primary);
+    color: var(--primary-light);
 }
 
 .input-group input::placeholder {
-    color: var(--gray-400);
+    color: rgba(148, 163, 184, 0.6);
 }
 
 /* Login Button */
@@ -1469,19 +1473,19 @@ body {
     font-size: 1rem;
     font-weight: 600;
     color: white;
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
     cursor: pointer;
     transition: all var(--transition-fast);
     box-shadow:
-        0 10px 25px -5px rgba(99, 102, 241, 0.4),
-        0 4px 10px rgba(99, 102, 241, 0.2);
+        0 10px 25px -5px rgba(30, 111, 220, 0.5),
+        0 4px 10px rgba(30, 111, 220, 0.3);
 }
 
 .btn-login:hover {
     transform: translateY(-2px);
     box-shadow:
-        0 15px 30px -5px rgba(99, 102, 241, 0.5),
-        0 8px 15px rgba(99, 102, 241, 0.3);
+        0 15px 30px -5px rgba(30, 111, 220, 0.6),
+        0 8px 15px rgba(74, 158, 255, 0.4);
 }
 
 .btn-login:active {
@@ -1646,11 +1650,11 @@ body {
     margin-top: var(--space-8);
     text-align: center;
     padding-top: var(--space-5);
-    border-top: 1px solid var(--gray-200);
+    border-top: 1px solid rgba(30, 111, 220, 0.2);
 }
 
 .login-footer p {
-    color: var(--gray-400);
+    color: rgba(100, 116, 139, 0.8);
     font-size: 0.75rem;
 }
 
