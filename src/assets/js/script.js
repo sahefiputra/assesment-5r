@@ -266,6 +266,203 @@ function calculateAspectScore(data, questions) {
 }
 
 // =====================
+// Export Excel Functions
+// =====================
+
+async function exportToExcel() {
+    const user = getCurrentUser();
+    if (user.role !== 'k3') {
+        Swal.fire({
+            icon: 'error',
+            title: 'Akses Ditolak',
+            text: 'Hanya user K3 yang dapat export data'
+        });
+        return;
+    }
+
+    try {
+        Swal.fire({
+            title: 'Memuat data...',
+            text: 'Mohon tunggu sebentar',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        // Fetch semua assessments dengan answers dari Supabase
+        const assessments = await SupabaseAPI.get('assessments', {
+            'select': '*,users(name),assessment_answers(*)',
+            'order': 'created_at.desc'
+        });
+
+        if (!assessments || assessments.length === 0) {
+            Swal.close();
+            Swal.fire({
+                icon: 'info',
+                title: 'Tidak Ada Data',
+                text: 'Tidak ada assessment untuk diexport'
+            });
+            return;
+        }
+
+        // Create workbook dengan dua sheets
+        const wb = XLSX.utils.book_new();
+
+        // === Sheet 1: Summary ===
+        const summaryData = [
+            [
+                'No',
+                'Nama Karyawan',
+                'Divisi',
+                'Jabatan',
+                'Periode',
+                'Tanggal Isi',
+                'Ringkas (R1)',
+                'Rapi (R2)',
+                'Resik (R3)',
+                'Rawat (R4)',
+                'Rajin (R5)',
+                'Total Skor',
+                'Tgl Verifikasi K3'
+            ]
+        ];
+
+        assessments.forEach((a, index) => {
+            summaryData.push([
+                index + 1,
+                a.users?.name || '-',
+                a.divisi || '-',
+                a.jabatan || '-',
+                a.periode || '-',
+                formatDate(a.created_at),
+                parseFloat(a.r1_score || 0).toFixed(1),
+                parseFloat(a.r2_score || 0).toFixed(1),
+                parseFloat(a.r3_score || 0).toFixed(1),
+                parseFloat(a.r4_score || 0).toFixed(1),
+                parseFloat(a.r5_score || 0).toFixed(1),
+                parseFloat(a.total_score || 0).toFixed(1),
+                a.k3_verified_at ? formatDate(a.k3_verified_at) : 'Belum diverifikasi'
+            ]);
+        });
+
+        const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+        XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+
+        // === Sheet 2: Detail ===
+        const detailData = [
+            [
+                'No',
+                'Nama Karyawan',
+                'Divisi',
+                'Jabatan',
+                'Aspek',
+                'Kode Pertanyaan',
+                'Pertanyaan',
+                'Score Asli',
+                'Score K3',
+                'Keterangan'
+            ]
+        ];
+
+        const questionsMap = {
+            'R1': [
+                { code: 'q1_1', text: 'Apakah barang di area/meja kerja sesuai pekerjaan?' },
+                { code: 'q1_2', text: 'Apakah dokumen dalam map atau odner masih dalam masa simpan yang berlaku?' },
+                { code: 'q1_3', text: 'Apakah peralatan kerja dalam kondisi baik dan digunakan?' },
+                { code: 'q1_4', text: 'Apakah karyawan memahami cara membuang barang tidak terpakai atau arsip yang sudah melewati masa simpan?' },
+                { code: 'q1_5', text: 'Apakah barang dan inventaris sudah disimpan di tempatnya dan sesuai kebutuhan?' }
+            ],
+            'R2': [
+                { code: 'q2_1', text: 'Apakah pelabelan sudah lengkap dan memudahkan identifikasi barang?' },
+                { code: 'q2_2', text: 'Apakah barang, arsip, dan inventaris sudah tertata rapi dan sesuai penempatannya?' },
+                { code: 'q2_3', text: 'Apakah tempat penyimpanan memudahkan pencarian barang?' },
+                { code: 'q2_4', text: 'Apakah barang di area / meja kerja milik seluruh karyawan divisi telah tertata rapi?' },
+                { code: 'q2_5', text: 'Apakah layout zonasi dan letak penyimpanan sudah ada dan diterapkan di area kerja?' }
+            ],
+            'R3': [
+                { code: 'q3_1', text: 'Apakah area kerja (lantai, dinding, langit-langit, dan meja) sudah bersih dan bebas debu/kotoran?' },
+                { code: 'q3_2', text: 'Apakah peralatan kerja telah bersih, bebas debu, dan kotoran?' },
+                { code: 'q3_3', text: 'Apakah peralatan makan dalam kondisi bersih dan tempat sampah tidak menumpuk serta tidak ada sampah di sekitarnya?' },
+                { code: 'q3_4', text: 'Apakah karyawan telah membiasakan resik sebelum, selama, dan sesudah kerja?' },
+                { code: 'q3_5', text: 'Apakah ada sistem di tiap divisi untuk mendorong karyawan menjaga kebersihan area kerja?' }
+            ],
+            'R4': [
+                { code: 'q4_1', text: 'Apakah kendali visual terhadap potensi bahaya (simbol, rambu, marka) sudah diterapkan pada semua alat, mesin, dan sarana kerja?' },
+                { code: 'q4_2', text: 'Apakah seluruh peralatan, fasilitas, dan area kerjanya dalam kondisi terawat?' }
+            ],
+            'R5': [
+                { code: 'q5_1', text: 'Apakah seluruh karyawan telah menerapkan 4R sebelumnya terhadap peralatan, fasilitas, dan area kerjanya?' },
+                { code: 'q5_2', text: 'Apakah sikap kerja semua personel pada area kerja sudah menunjukkan kebiasaan positif (atribut kerja, tepat waktu, disiplin, dan sebagainya)?' },
+                { code: 'q5_3', text: 'Apakah karyawan divisi bersedia melaksanakan kegiatan 5R secara konsisten dan berkesinambungan?' },
+                { code: 'q5_4', text: 'Apakah sudah ada pertemuan atau evaluasi (PDCA) berkala untuk meningkatkan hasil penerapan 5R?' },
+                { code: 'q5_5', text: 'Apakah ada upaya perbaikan berkesinambungan (continual improvement) dalam penerapan 5R?' }
+            ]
+        };
+
+        const aspectNames = {
+            'R1': 'Ringkas',
+            'R2': 'Rapi',
+            'R3': 'Resik',
+            'R4': 'Rawat',
+            'R5': 'Rajin'
+        };
+
+        let detailIndex = 1;
+        assessments.forEach(a => {
+            const answers = a.assessment_answers || [];
+            const aspects = ['R1', 'R2', 'R3', 'R4', 'R5'];
+
+            aspects.forEach(aspect => {
+                const questions = questionsMap[aspect] || [];
+                questions.forEach(q => {
+                    const answer = answers.find(ans => ans.question_code === q.code);
+                    detailData.push([
+                        detailIndex++,
+                        a.users?.name || '-',
+                        a.divisi || '-',
+                        a.jabatan || '-',
+                        aspectNames[aspect] || aspect,
+                        q.code,
+                        q.text,
+                        answer ? answer.score : '-',
+                        answer ? (answer.score_k3 || '-') : '-',
+                        answer?.explanation || ''
+                    ]);
+                });
+            });
+        });
+
+        const wsDetail = XLSX.utils.aoa_to_sheet(detailData);
+        XLSX.utils.book_append_sheet(wb, wsDetail, 'Detail');
+
+        // Generate filename dengan timestamp
+        const now = new Date();
+        const timestamp = now.toISOString().slice(0, 10);
+        const filename = `Assessment_5R_${timestamp}.xlsx`;
+
+        // Download file
+        XLSX.writeFile(wb, filename);
+
+        Swal.close();
+        Swal.fire({
+            icon: 'success',
+            title: 'Export Berhasil',
+            text: `File ${filename} berhasil diunduh`,
+            timer: 2000,
+            showConfirmButton: false
+        });
+
+    } catch (e) {
+        console.error('Error exporting to Excel:', e);
+        Swal.close();
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal Export',
+            text: 'Terjadi kesalahan: ' + e.message
+        });
+    }
+}
+
+// =====================
 // Dashboard Functions
 // =====================
 function updateStats() {

@@ -470,6 +470,16 @@ body {
     background: #bfdbfe;
 }
 
+.btn-success {
+    background: var(--secondary);
+    color: white;
+}
+
+.btn-success:hover {
+    background: #059669;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
 .btn-lg {
     padding: var(--space-3) var(--space-6);
     font-size: 0.9375rem;
