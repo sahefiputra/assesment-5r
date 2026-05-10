@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Self Assessment 5R - Dashboard</title>
+    <title>SAFE | System for Area and Facility Evaluation - Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
@@ -216,7 +216,7 @@
             <header class="header">
                 <div>
                     <h1>Dashboard</h1>
-                    <p>Self Assessment 5R Divisi</p>
+                    <p>SAFE | System for Area and Facility Evaluation</p>
                 </div>
                 <div id="userInfo"></div>
             </header>
@@ -415,6 +415,30 @@
                 <button type="button" class="btn btn-primary" onclick="submitK3Verification()">Simpan
                     Verifikasi</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Photo Modal -->
+    <div id="photoModal" class="photo-modal">
+        <div class="photo-modal-overlay" onclick="closePhotoModal()"></div>
+        <div class="photo-modal-content">
+            <button class="photo-modal-close" onclick="closePhotoModal()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+            </button>
+            <button id="photoModalPrev" class="photo-modal-nav prev" onclick="navigatePhotoModal(-1)">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M15 18l-6-6 6-6" />
+                </svg>
+            </button>
+            <img id="photoModalImage" src="" alt="Full size photo">
+            <button id="photoModalNext" class="photo-modal-nav next" onclick="navigatePhotoModal(1)">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M9 18l6-6-6-6" />
+                </svg>
+            </button>
+            <div id="photoModalCounter" class="photo-modal-counter">1 / 1</div>
         </div>
     </div>
 

@@ -437,7 +437,7 @@ async function exportToExcel() {
         // Generate filename dengan timestamp
         const now = new Date();
         const timestamp = now.toISOString().slice(0, 10);
-        const filename = `Assessment_5R_${timestamp}.xlsx`;
+        const filename = `Assessment_SAFE_${timestamp}.xlsx`;
 
         // Download file
         XLSX.writeFile(wb, filename);
@@ -950,7 +950,7 @@ async function openK3VerifModal(assessmentId) {
         // Fetch assessment dengan answers dari Supabase
         const assessment = await SupabaseAPI.get('assessments', {
             'id': `eq.${assessmentId}`,
-            'select': '*,assessment_answers(*)'
+            'select': '*,assessment_answers(*,assessment_photos(*))'
         });
 
         if (!assessment || assessment.length === 0) {
@@ -1057,12 +1057,35 @@ function renderK3VerifModal(assessment, answers) {
             const originalScore = answer ? answer.score : 0;
             const k3Score = answer ? (answer.score_k3 || originalScore) : 0;
 
+            // Pre-calculate photo paths for the modal
+            const photoPaths = answer?.assessment_photos ? answer.assessment_photos.map(p => p.file_path) : [];
+            const photoPathsJson = JSON.stringify(photoPaths).replace(/"/g, '&quot;');
+
             html += `
                 <div class="verif-question-card" style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
                     <div style="margin-bottom: 0.75rem;">
                         <span style="font-size: 0.75rem; background: #6b7280; color: white; padding: 2px 8px; border-radius: 4px;">${q.code}</span>
                         <p style="margin: 0.5rem 0 0; font-size: 0.875rem;">${q.question}</p>
                     </div>
+
+                    <!-- Photo Preview -->
+                    ${answer?.assessment_photos && answer.assessment_photos.length > 0 ? `
+                    <div class="verif-photos-preview" style="display: flex; gap: 0.5rem; margin-bottom: 1rem; overflow-x: auto; padding-bottom: 0.5rem;">
+                        ${answer.assessment_photos.map((p, idx) => {
+                            const imgSrc = SupabaseAPI.getPublicUrl('5r-assesment', p.file_path);
+                            return `
+                                <div style="width: 100px; height: 100px; border-radius: 6px; overflow: hidden; flex-shrink: 0; border: 1px solid #e5e7eb; cursor: pointer; background: #f8fafc;"
+                                     onclick="openK3PhotoModal(${photoPathsJson}, ${idx})">
+                                    <img src="${imgSrc}" style="width: 100%; height: 100%; object-fit: contain;" alt="Preview">
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    ` : `
+                    <div style="margin-bottom: 1rem; font-size: 0.75rem; color: #94a3b8; font-style: italic;">
+                        Tidak ada foto
+                    </div>
+                    `}
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                         <div>
                             <label style="font-size: 0.75rem; color: #6b7280; display: block;">Score Asli</label>
@@ -1234,6 +1257,7 @@ function getFormData() {
         foto1_3: getStoredImage('foto1_3'),
         q1_4: document.querySelector('input[name="q1_4"]:checked')?.value,
         penjelasan1_4: document.getElementById('penjelasan1_4')?.value || '',
+        foto1_4: getStoredImage('foto1_4'),
         q1_5: document.querySelector('input[name="q1_5"]:checked')?.value,
         foto1_5: getStoredImage('foto1_5'),
 
@@ -1532,7 +1556,7 @@ function loadAssessment(id) {
 
     // Load images
     const imageFields = [
-        'foto1_1', 'foto1_2', 'foto1_3', 'foto1_5',
+        'foto1_1', 'foto1_2', 'foto1_3', 'foto1_4', 'foto1_5',
         'foto2_1', 'foto2_2', 'foto2_3', 'foto2_4', 'foto2_5',
         'foto3_1', 'foto3_2', 'foto3_3', 'foto3_4', 'foto3_5',
         'foto4_1', 'foto4_2'
@@ -1793,6 +1817,34 @@ function navigatePhotoModal(direction) {
         updatePhotoModal();
     }
 }
+
+// Special function for K3 verif modal photos
+function openK3PhotoModal(images, index) {
+    if (!images || images.length === 0) return;
+    
+    currentPhotoModal = {
+        images: images,
+        currentIndex: index,
+        field: ''
+    };
+
+    updatePhotoModal();
+    document.getElementById('photoModal').classList.add('active');
+}
+
+// Global escape key listener for modals
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closePhotoModal();
+        // Also close other modals if needed
+        if (document.getElementById('k3VerifModal')) {
+            document.getElementById('k3VerifModal').classList.remove('active');
+        }
+        if (document.getElementById('detailModal')) {
+            document.getElementById('detailModal').classList.remove('active');
+        }
+    }
+});
 
 function removeImageIndex(field, index) {
     let images = [];
@@ -2058,7 +2110,7 @@ function resetForm() {
 
     // Clear sessionStorage photos
     const imageFields = [
-        'foto1_1', 'foto1_2', 'foto1_3', 'foto1_5',
+        'foto1_1', 'foto1_2', 'foto1_3', 'foto1_4', 'foto1_5',
         'foto2_1', 'foto2_2', 'foto2_3', 'foto2_4', 'foto2_5',
         'foto3_1', 'foto3_2', 'foto3_3', 'foto3_4', 'foto3_5',
         'foto4_1', 'foto4_2'

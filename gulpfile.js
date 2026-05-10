@@ -3,7 +3,7 @@ const fileinclude = require('gulp-file-include');
 const browserSync = require('browser-sync').create();
 
 // Task to compile HTML and resolve includes
-gulp.task('html', function() {
+gulp.task('html', function () {
     return gulp.src(['src/pages/*.html'])
         .pipe(fileinclude({
             prefix: '@@',
@@ -14,14 +14,16 @@ gulp.task('html', function() {
 });
 
 // Task to copy assets (CSS/JS)
-gulp.task('assets', function() {
-    return gulp.src(['src/assets/**/*'])
-        .pipe(gulp.dest('dist/assets/'))
+gulp.task('assets', function () {
+    return gulp.src('src/assets/**/*', {
+        encoding: false
+    })
+        .pipe(gulp.dest('dist/assets'))
         .pipe(browserSync.stream());
 });
 
 // BrowserSync task
-gulp.task('browser-sync', function() {
+gulp.task('browser-sync', function () {
     browserSync.init({
         server: {
             baseDir: './dist'
@@ -32,7 +34,7 @@ gulp.task('browser-sync', function() {
 });
 
 // Task to watch for changes
-gulp.task('watch', function() {
+gulp.task('watch', function () {
     gulp.watch(['src/**/*.html'], gulp.series('html'));
     gulp.watch(['src/assets/**/*'], gulp.series('assets'));
 });
