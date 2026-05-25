@@ -935,6 +935,7 @@ function closeModal() {
 // =====================
 let currentK3VerifAssessmentId = null;
 let currentK3VerifAnswers = null; // Simpan answers untuk diakses di submitK3Verification
+const K3_ALLOWED_SCORES = [25, 50, 75, 100];
 
 async function openK3VerifModal(assessmentId) {
     currentK3VerifAssessmentId = assessmentId;
@@ -1055,7 +1056,10 @@ function renderK3VerifModal(assessment, answers) {
         questions.forEach(q => {
             const answer = answers.find(a => a.question_code === q.code);
             const originalScore = answer ? answer.score : 0;
-            const k3Score = answer ? (answer.score_k3 || originalScore) : 0;
+            const k3Score = answer ? (answer.score_k3 || originalScore) : originalScore;
+            const k3ScoreOptions = K3_ALLOWED_SCORES.map(score => `
+                                <option value="${score}" ${Number(k3Score) === score ? 'selected' : ''}>${score}</option>
+                            `).join('');
 
             // Pre-calculate photo paths for the modal
             const photoPaths = answer?.assessment_photos ? answer.assessment_photos.map(p => p.file_path) : [];
@@ -1093,9 +1097,10 @@ function renderK3VerifModal(assessment, answers) {
                         </div>
                         <div>
                             <label style="font-size: 0.75rem; color: #374151; font-weight: 600; display: block;">Score K3 <span class="required">*</span></label>
-                            <input type="number" class="k3-score-input" data-question-code="${q.code}" data-answer-id="${answer?.id || ''}"
-                                   value="${k3Score}" min="0" max="100" step="25" required
-                                   style="width: 100%; padding: 0.5rem; border: 1px solid #3b82f6; border-radius: 4px; font-weight: 600;">
+                            <select class="k3-score-input" data-question-code="${q.code}" data-answer-id="${answer?.id || ''}" required
+                                    style="width: 100%; padding: 0.5rem; border: 1px solid #3b82f6; border-radius: 4px; font-weight: 600; background: white;">
+                                ${k3ScoreOptions}
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -1136,6 +1141,17 @@ async function submitK3Verification() {
         const scoreK3 = parseInt(input.value);
 
         console.log(`Input: question=${questionCode}, answerId=${answerId}, score=${scoreK3}`);
+
+        if (!K3_ALLOWED_SCORES.includes(scoreK3)) {
+            input.focus();
+            Swal.fire({
+                icon: 'warning',
+                title: 'Score K3 Tidak Valid',
+                text: 'Score K3 hanya boleh bernilai 25, 50, 75, atau 100.',
+                confirmButtonColor: '#6366f1'
+            });
+            return;
+        }
 
         if (answerId && !isNaN(scoreK3)) {
             updates.push({
@@ -1314,8 +1330,35 @@ function getFormData() {
     return formData;
 }
 
+function getEmptyRequiredTextarea() {
+    return Array.from(document.querySelectorAll('textarea[required]'))
+        .find(textarea => textarea.value.trim() === '');
+}
+
+function showRequiredTextareaAlert(textarea) {
+    if (!textarea) {
+        return;
+    }
+
+    textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    textarea.focus({ preventScroll: true });
+
+    Swal.fire({
+        icon: 'warning',
+        title: 'Text Area Wajib Diisi',
+        text: 'Mohon lengkapi kolom penjelasan sebelum submit.',
+        confirmButtonColor: '#6366f1'
+    });
+}
+
 async function handleSubmit(event) {
     event.preventDefault();
+
+    const emptyTextarea = getEmptyRequiredTextarea();
+    if (emptyTextarea) {
+        showRequiredTextareaAlert(emptyTextarea);
+        return;
+    }
 
     // Validasi semua field foto wajib diisi
     const photoValidation = validatePhotoFields();
@@ -2336,7 +2379,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Form page
-    if (document.getElementById('assessmentForm')) {
+    const assessmentForm = document.getElementById('assessmentForm');
+    if (assessmentForm) {
         const user = getCurrentUser();
         if (user) {
             // Check for edit mode from URL
@@ -2351,6 +2395,24 @@ document.addEventListener('DOMContentLoaded', function () {
                 resetForm();
             }
         }
+
+        let textareaAlertShown = false;
+        assessmentForm.addEventListener('invalid', function (e) {
+            if (!e.target.matches('textarea[required]')) {
+                return;
+            }
+
+            e.preventDefault();
+            if (textareaAlertShown) {
+                return;
+            }
+
+            textareaAlertShown = true;
+            showRequiredTextareaAlert(e.target);
+            setTimeout(() => {
+                textareaAlertShown = false;
+            }, 500);
+        }, true);
 
         // Close modal on outside click
         document.addEventListener('click', function (e) {
